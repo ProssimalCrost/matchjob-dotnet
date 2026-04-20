@@ -1,0 +1,111 @@
+================================================
+  MATCHJOB — COMANDOS PARA EXECUTAR O PROJETO
+================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PRÉ-REQUISITOS — INSTALAR ANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+.NET SDK 8:   https://dot.net/download
+PostgreSQL:   https://www.postgresql.org/download
+Node.js 18+:  https://nodejs.org
+Expo Go:      Instalar no celular (App Store / Google Play)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 1 — BANCO DE DADOS (PostgreSQL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abra o terminal e execute:
+
+  psql -U postgres
+
+Dentro do psql, execute:
+
+  CREATE DATABASE matchjob;
+  \q
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 2 — BACKEND (.NET 8)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abra um terminal e execute:
+
+  cd back
+  dotnet restore
+  dotnet run
+
+API disponível em:  http://localhost:5000
+Swagger disponível: http://localhost:5000/swagger
+
+Aguarde aparecer no console:
+  ✅ MatchJob API rodando!
+  ✅ Seed concluído!
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PASSO 3 — FRONTEND (React Native + Expo)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Abra OUTRO terminal (deixe o backend rodando) e execute:
+
+  cd front
+  npm install
+  npx expo start
+
+Escaneie o QR Code com o app Expo Go no celular.
+
+  Emulador Android → pressione "a" no terminal
+  Simulador iOS    → pressione "i" no terminal (só Mac)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CONTAS DE TESTE (criadas automaticamente)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Cliente:      joao@matchjob.com   / senha: 123456
+  Profissional: carlos@matchjob.com / senha: 123456
+  Profissional: ana@matchjob.com    / senha: 123456
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SE ESTIVER TESTANDO NO CELULAR FÍSICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Edite o arquivo: matchjob-app/services/api.js
+
+Troque a linha:
+  const BASE_URL = 'http://10.0.2.2:5000';
+
+Pelo seu IP local:
+  const BASE_URL = 'http://192.168.1.XXX:5000';
+
+Para descobrir seu IP:
+  Windows → ipconfig
+  Mac/Linux → ifconfig
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SOLUÇÃO DE PROBLEMAS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Erro: dotnet not found
+  → Instale o .NET SDK 8 e reinicie o terminal
+
+Erro: Failed to connect to database
+  → Verifique se o PostgreSQL está rodando
+  → Verifique usuário/senha no appsettings.json
+
+Erro: Porta 5000 ocupada
+  → Edite Properties/launchSettings.json
+  → Troque "applicationUrl": "http://localhost:5001"
+  → Atualize BASE_URL no api.js para porta 5001
+
+Erro: Unable to resolve module (Expo)
+  → rm -rf node_modules
+  → npm install
+  → npx expo start --clear
+
+================================================

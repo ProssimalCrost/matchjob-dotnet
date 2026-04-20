@@ -1,0 +1,73 @@
+// Controllers/ProfessionalController.cs
+using MatchJob.DTOs;
+using MatchJob.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MatchJob.Controllers;
+
+/// <summary>
+/// Endpoints de profissionais — requerem JWT
+/// </summary>
+[ApiController]
+[Route("professionals")]
+[Authorize]
+public class ProfessionalController : ControllerBase
+{
+    private readonly ProfessionalProfileService _service;
+
+    public ProfessionalController(ProfessionalProfileService service) => _service = service;
+
+    /// <summary>
+    /// GET /professionals
+    /// GET /professionals?category=Design
+    /// GET /professionals?location=São Paulo
+    /// GET /professionals?tag=Figma
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> List(
+        [FromQuery] string? category,
+        [FromQuery] string? location,
+        [FromQuery] string? tag)
+    {
+        var result = await _service.ListAsync(category, location, tag);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// GET /professionals/{id}
+    /// </summary>
+    [HttpGet("{id:long}")]
+    public async Task<IActionResult> GetById(long id)
+    {
+        try
+        {
+            var result = await _service.GetByIdAsync(id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// POST /professionals?userId=1
+    /// Body: { "description": "...", "category": "Dev", "tags": [...], ... }
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        [FromQuery] long userId,
+        [FromBody] ProfessionalProfileRequest req)
+    {
+        try
+        {
+            var result = await _service.CreateOrUpdateAsync(userId, req);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+}
