@@ -1,0 +1,8 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=matchjob;Username=postgres;Password=30154651"
+  },
+  "Jwt": {
+    "Secret": "matchjob-secret-key-muito-segura-1234567890-dotnet"
+  }
+}
