@@ -21,7 +21,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // ═══════════════════════════════════════════════════════════
 // 2. JWT AUTHENTICATION
 // ═══════════════════════════════════════════════════════════
-var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+var jwtSecret = builder.Configuration["Jwt:Secret"]
+    ?? throw new InvalidOperationException("Jwt:Secret não configurado.");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]
+    ?? throw new InvalidOperationException("Jwt:Issuer não configurado.");
+var jwtAudience = builder.Configuration["Jwt:Audience"]
+    ?? throw new InvalidOperationException("Jwt:Audience não configurado.");
 var jwtKey    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -33,8 +38,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience         = true,
             ValidateLifetime         = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = builder.Configuration["Jwt:Issuer"],
-            ValidAudience            = builder.Configuration["Jwt:Audience"],
+            ValidIssuer              = jwtIssuer,
+            ValidAudience            = jwtAudience,
             IssuerSigningKey         = jwtKey,
             ClockSkew                = TimeSpan.Zero // Sem tolerância de tempo
         };

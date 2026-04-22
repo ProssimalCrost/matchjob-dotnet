@@ -24,9 +24,12 @@ public class JwtService
     /// </summary>
     public string GenerateToken(User user)
     {
-        var secret      = _config["Jwt:Secret"]!;
-        var issuer      = _config["Jwt:Issuer"]!;
-        var audience    = _config["Jwt:Audience"]!;
+        var secret      = _config["Jwt:Secret"]
+            ?? throw new InvalidOperationException("Jwt:Secret não configurado.");
+        var issuer      = _config["Jwt:Issuer"]
+            ?? throw new InvalidOperationException("Jwt:Issuer não configurado.");
+        var audience    = _config["Jwt:Audience"]
+            ?? throw new InvalidOperationException("Jwt:Audience não configurado.");
         var expHours    = int.Parse(_config["Jwt:ExpirationHours"] ?? "24");
 
         var key         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
