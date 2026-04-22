@@ -11,7 +11,6 @@ namespace MatchJob.Controllers;
 /// </summary>
 [ApiController]
 [Route("professionals")]
-[Authorize]
 public class ProfessionalController : ControllerBase
 {
     private readonly ProfessionalProfileService _service;
@@ -25,6 +24,7 @@ public class ProfessionalController : ControllerBase
     /// GET /professionals?tag=Figma
     /// </summary>
     [HttpGet]
+    [AllowAnonymous]
     public async Task<IActionResult> List(
         [FromQuery] string? category,
         [FromQuery] string? location,
@@ -38,6 +38,7 @@ public class ProfessionalController : ControllerBase
     /// GET /professionals/{id}
     /// </summary>
     [HttpGet("{id:long}")]
+    [AllowAnonymous]
     public async Task<IActionResult> GetById(long id)
     {
         try
@@ -56,6 +57,7 @@ public class ProfessionalController : ControllerBase
     /// Body: { "description": "...", "category": "Dev", "tags": [...], ... }
     /// </summary>
     [HttpPost]
+    [Authorize]
     public async Task<IActionResult> Create(
         [FromQuery] long userId,
         [FromBody] ProfessionalProfileRequest req)

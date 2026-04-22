@@ -1,0 +1,209 @@
+{
+  "info": {
+    "name": "MatchJob API (.NET)",
+    "description": "Coleção completa de endpoints do MVP MatchJob — backend .NET 8.\n\n**Fluxo:**\n1. POST /auth/login → copie o token\n2. Cole o token na variável {{token}}\n3. Use os demais endpoints normalmente",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "token",   "value": "COLE_O_TOKEN_AQUI",    "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "🔐 Auth",
+      "item": [
+        {
+          "name": "Register — Cliente",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Maria Souza\",\n  \"Email\": \"maria@email.com\",\n  \"Password\": \"123456\",\n  \"Role\": \"CLIENT\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register — Profissional",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/register" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Name\": \"Pedro Lima\",\n  \"Email\": \"pedro@email.com\",\n  \"Password\": \"123456\",\n  \"Role\": \"PROFESSIONAL\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login — Cliente de teste (joao)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Email\": \"joao@matchjob.com\",\n  \"Password\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login — Profissional (carlos)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Email\": \"carlos@matchjob.com\",\n  \"Password\": \"123456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "👤 Profissionais",
+      "item": [
+        {
+          "name": "GET — Listar todos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/professionals" }
+          }
+        },
+        {
+          "name": "GET — Filtrar por categoria",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/professionals?category=Design",
+              "query": [{ "key": "category", "value": "Design" }]
+            }
+          }
+        },
+        {
+          "name": "GET — Filtrar por localização",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/professionals?location=São Paulo",
+              "query": [{ "key": "location", "value": "São Paulo" }]
+            }
+          }
+        },
+        {
+          "name": "GET — Filtrar por tag",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/professionals?tag=Figma",
+              "query": [{ "key": "tag", "value": "Figma" }]
+            }
+          }
+        },
+        {
+          "name": "GET — Por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/professionals/1" }
+          }
+        },
+        {
+          "name": "POST — Criar perfil (userId=2)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/professionals?userId=2",
+              "query": [{ "key": "userId", "value": "2" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"Description\": \"Designer especialista em branding.\",\n  \"Category\": \"Design\",\n  \"Tags\": [\"Illustrator\", \"Photoshop\"],\n  \"Location\": \"Belo Horizonte - MG\",\n  \"PriceRange\": \"R$70-R$130/hora\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "💬 Conversas",
+      "item": [
+        {
+          "name": "POST — Criar conversa",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/conversations" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ClientId\": 3,\n  \"ProfessionalId\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "GET — Conversas do usuário (id=3)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/conversations/user/3" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "✉️ Mensagens",
+      "item": [
+        {
+          "name": "POST — Enviar mensagem",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/messages" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ConversationId\": 1,\n  \"SenderId\": 3,\n  \"Content\": \"Olá! Vi seu perfil e gostaria de contratar seus serviços.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "POST — Resposta do profissional",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type",  "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/messages" },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ConversationId\": 1,\n  \"SenderId\": 1,\n  \"Content\": \"Olá! Claro, fico feliz em ajudar. Me conte mais sobre o projeto!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "GET — Mensagens da conversa (id=1)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/messages/1" }
+          }
+        }
+      ]
+    }
+  ]
+}

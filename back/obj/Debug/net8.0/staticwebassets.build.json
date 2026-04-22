@@ -1,1 +1,11 @@
-{"Version":1,"Hash":"9yDP1y1Nhi68HjgJPrEaU5Jked0GWJC+0crGJ9rZnQU=","Source":"MatchJob","BasePath":"/","Mode":"Root","ManifestType":"Build","ReferencedProjectsConfiguration":[],"DiscoveryPatterns":[],"Assets":[],"Endpoints":[]}
+{
+  "Version": 1,
+  "Hash": "kXjmOnldwl9lGOBYy8TWTkHw5xFPeM6V9iMNlQfwZTk=",
+  "Source": "MatchJob",
+  "BasePath": "_content/MatchJob",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
