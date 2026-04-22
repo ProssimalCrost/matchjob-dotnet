@@ -12,7 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 //  Celular físico    → http://SEU_IP_LOCAL:5000
 //    (descubra com: ipconfig no Windows | ifconfig no Mac/Linux)
 // ─────────────────────────────────────────────────────────
-const BASE_URL = 'http://10.0.2.2:5000';
+const BASE_URL = 'http://localhost:5000';
 
 const api = axios.create({
   baseURL: BASE_URL,

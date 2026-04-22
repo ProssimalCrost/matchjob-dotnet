@@ -1,86 +1,86 @@
-// Data/DataSeeder.cs
 using MatchJob.Models;
-using BCrypt.Net;
 
 namespace MatchJob.Data;
 
-/// <summary>
-/// Popula o banco com dados iniciais na primeira execução.
-/// Só insere se não houver usuários cadastrados.
-/// </summary>
 public static class DataSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
-        // Garante que as tabelas existam (cria se necessário)
         await db.Database.EnsureCreatedAsync();
 
-        // Só faz seed se o banco estiver vazio
-        if (db.Users.Any()) return;
+        Console.WriteLine("🌱 Seed: verificando dados iniciais...");
 
-        Console.WriteLine("🌱 Seed: populando banco com dados iniciais...");
-
-        // ── Profissional 1: Dev ───────────────────────────────────
-        var carlosUser = new User
+        if (!db.Users.Any(u => u.Email == "carlos@matchjob.com"))
         {
-            Name = "Carlos Silva",
-            Email = "carlos@matchjob.com",
-            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
-            Role = Role.PROFESSIONAL
-        };
-        db.Users.Add(carlosUser);
-        await db.SaveChangesAsync();
+            var carlos = new User
+            {
+                Name     = "Carlos Silva",
+                Email    = "carlos@matchjob.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role     = Role.PROFESSIONAL
+            };
+            db.Users.Add(carlos);
+            await db.SaveChangesAsync();
 
-        db.ProfessionalProfiles.Add(new ProfessionalProfile
+            db.ProfessionalProfiles.Add(new ProfessionalProfile
+            {
+                UserId     = carlos.Id,
+                Description = "Desenvolvedor full-stack com 5 anos de experiência.",
+                Category   = "Desenvolvimento",
+                Tags       = new List<string> { "React Native", ".NET", "PostgreSQL" },
+                Location   = "São Paulo - SP",
+                PriceRange = "R$80-R$150/hora",
+                Rating     = 4.8
+            });
+            await db.SaveChangesAsync();
+            Console.WriteLine("   ✔ Carlos inserido");
+        }
+        else { Console.WriteLine("   → Carlos já existe, pulando..."); }
+
+        if (!db.Users.Any(u => u.Email == "ana@matchjob.com"))
         {
-            UserId = carlosUser.Id,
-            Description = "Desenvolvedor full-stack com 5 anos de experiência. " +
-                          "Especialista em React Native e .NET. " +
-                          "Atendo projetos de apps mobile, sistemas web e APIs REST.",
-            Category = "Desenvolvimento",
-            Tags = ["React Native", ".NET", "PostgreSQL", "Node.js", "AWS"],
-            Location = "São Paulo - SP",
-            PriceRange = "R$80-R$150/hora",
-            Rating = 4.8
-        });
+            var ana = new User
+            {
+                Name     = "Ana Ferreira",
+                Email    = "ana@matchjob.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role     = Role.PROFESSIONAL
+            };
+            db.Users.Add(ana);
+            await db.SaveChangesAsync();
 
-        // ── Profissional 2: Designer ──────────────────────────────
-        var anaUser = new User
+            db.ProfessionalProfiles.Add(new ProfessionalProfile
+            {
+                UserId     = ana.Id,
+                Description = "Designer UX/UI freelancer com foco em apps mobile.",
+                Category   = "Design",
+                Tags       = new List<string> { "UX/UI", "Figma", "Prototipação" },
+                Location   = "Rio de Janeiro - RJ",
+                PriceRange = "R$60-R$120/hora",
+                Rating     = 4.9
+            });
+            await db.SaveChangesAsync();
+            Console.WriteLine("   ✔ Ana inserida");
+        }
+        else { Console.WriteLine("   → Ana já existe, pulando..."); }
+
+        if (!db.Users.Any(u => u.Email == "joao@matchjob.com"))
         {
-            Name = "Ana Ferreira",
-            Email = "ana@matchjob.com",
-            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
-            Role = Role.PROFESSIONAL
-        };
-        db.Users.Add(anaUser);
-        await db.SaveChangesAsync();
-
-        db.ProfessionalProfiles.Add(new ProfessionalProfile
-        {
-            UserId = anaUser.Id,
-            Description = "Designer UX/UI freelancer com foco em apps mobile e sistemas web. " +
-                          "Trabalho com Figma, crio protótipos interativos e design systems completos.",
-            Category = "Design",
-            Tags = ["UX/UI", "Figma", "Prototipação", "Design System", "Branding"],
-            Location = "Rio de Janeiro - RJ",
-            PriceRange = "R$60-R$120/hora",
-            Rating = 4.9
-        });
-
-        // ── Cliente de teste ──────────────────────────────────────
-        db.Users.Add(new User
-        {
-            Name = "João Cliente",
-            Email = "joao@matchjob.com",
-            Password = BCrypt.Net.BCrypt.HashPassword("123456"),
-            Role = Role.CLIENT
-        });
-
-        await db.SaveChangesAsync();
+            db.Users.Add(new User
+            {
+                Name     = "João Cliente",
+                Email    = "joao@matchjob.com",
+                Password = BCrypt.Net.BCrypt.HashPassword("123456"),
+                Role     = Role.CLIENT
+            });
+            await db.SaveChangesAsync();
+            Console.WriteLine("   ✔ João inserido");
+        }
+        else { Console.WriteLine("   → João já existe, pulando..."); }
 
         Console.WriteLine("✅ Seed concluído!");
-        Console.WriteLine("   Profissional: carlos@matchjob.com / 123456");
-        Console.WriteLine("   Profissional: ana@matchjob.com    / 123456");
-        Console.WriteLine("   Cliente:      joao@matchjob.com   / 123456");
+        Console.WriteLine("   carlos@matchjob.com / 123456");
+        Console.WriteLine("   ana@matchjob.com    / 123456");
+        Console.WriteLine("   joao@matchjob.com   / 123456");
     }
 }

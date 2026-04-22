@@ -30,8 +30,12 @@ public class AppDbContext : DbContext
 
             // Tags como coluna JSON nativa do PostgreSQL
             e.Property(p => p.Tags)
-             .HasColumnType("jsonb")
-             .HasDefaultValueSql("'[]'::jsonb");
+            .HasColumnType("text")
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
+            )
+            .HasDefaultValue(new List<string>());
 
             // Relação 1:1 com User
             e.HasOne(p => p.User)
