@@ -73,37 +73,27 @@ export default function ChatScreen({ route, navigation }) {
     }
   };
 
-  const renderMsg = ({ item }) => {
+  const renderMessage = ({ item }) => {
     const isMe = item.SenderId === user.UserId;
-    return (
-      <View className={`mb-3 flex-row items-end ${isMe ? 'justify-end' : 'justify-start'}`}>
-        {!isMe ? (
-          <View className="mr-2 h-[34px] w-[34px] items-center justify-center rounded-full bg-indigo-600">
-            <Text className="text-xs font-extrabold text-white">
-              {item.SenderName?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-        ) : null}
 
+    return (
+      <View className={`mb-4 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}>
         <View
-          className={`max-w-[74%] rounded-2xl p-3 shadow-sm ${
-            isMe ? 'rounded-br-[4px] bg-indigo-600' : 'rounded-bl-[4px] bg-white'
+          className={`max-w-[78%] rounded-[24px] px-4 py-3 ${
+            isMe ? 'rounded-tr-[8px] bg-slate-950' : 'rounded-tl-[8px] bg-white'
           }`}
         >
           {!isMe ? (
-            <Text className="mb-1 text-[11px] font-bold text-indigo-600">
+            <Text className="mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-teal-700">
               {item.SenderName}
             </Text>
           ) : null}
 
-          <Text className={`text-base leading-5 ${isMe ? 'text-white' : 'text-slate-900'}`}>
+          <Text className={`text-base leading-6 ${isMe ? 'text-white' : 'text-slate-800'}`}>
             {item.Content}
           </Text>
-          <Text
-            className={`mt-1 text-right text-[10px] ${
-              isMe ? 'text-white/70' : 'text-slate-400'
-            }`}
-          >
+
+          <Text className={`mt-2 text-right text-[10px] font-semibold ${isMe ? 'text-slate-400' : 'text-slate-400'}`}>
             {formatTime(item.CreatedAt)}
           </Text>
         </View>
@@ -113,54 +103,70 @@ export default function ChatScreen({ route, navigation }) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-indigo-50"
+      className="flex-1 bg-[#edf4f7]"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={90}
     >
+      <View className="border-b border-slate-200 bg-white px-4 py-3">
+        <View className="w-full self-center" style={{ maxWidth: 1100 }}>
+          <Text className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
+            Conversa ativa
+          </Text>
+          <Text className="mt-1 text-lg font-black text-slate-900">{otherName}</Text>
+        </View>
+      </View>
+
       {loading ? (
-        <ActivityIndicator color="#4f46e5" size="large" style={{ flex: 1, marginTop: 60 }} />
+        <ActivityIndicator color="#0f766e" size="large" style={{ marginTop: 60 }} />
       ) : (
         <FlatList
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.Id.toString()}
-          renderItem={renderMsg}
-          contentContainerClassName="p-4 pb-2"
+          renderItem={renderMessage}
+          contentContainerClassName="px-4 pb-3 pt-4"
+          contentContainerStyle={{ width: '100%', maxWidth: 1100, alignSelf: 'center' }}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View className="items-center pt-24">
-              <Text className="text-base font-bold text-slate-600">
-                Inicio da conversa com {otherName}
+            <View className="items-center rounded-[28px] bg-white px-8 py-12">
+              <Text className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
+                Inicio da conversa
               </Text>
-              <Text className="mt-1 text-sm text-slate-400">Diga ola!</Text>
+              <Text className="mt-4 text-center text-lg font-black text-slate-700">
+                Escreva a primeira mensagem para {otherName}
+              </Text>
             </View>
           }
         />
       )}
 
-      <View className="flex-row items-end gap-2 border-t border-slate-200 bg-white p-3">
-        <TextInput
-          className="max-h-[120px] flex-1 rounded-full border border-slate-200 bg-indigo-50 px-4 py-3 text-sm text-slate-800"
-          placeholder="Digite uma mensagem..."
-          placeholderTextColor="#94a3b8"
-          value={text}
-          onChangeText={setText}
-          multiline
-          maxLength={500}
-        />
-        <TouchableOpacity
-          className={`h-[46px] w-[46px] items-center justify-center rounded-full ${
-            !text.trim() || sending ? 'bg-indigo-200' : 'bg-indigo-600'
-          }`}
-          onPress={handleSend}
-          disabled={!text.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text className="text-base font-bold text-white">OK</Text>
-          )}
-        </TouchableOpacity>
+      <View className="border-t border-slate-200 bg-white px-3 pb-4 pt-3">
+        <View className="w-full self-center flex-row items-end gap-2" style={{ maxWidth: 1100 }}>
+          <TextInput
+            className="max-h-[120px] flex-1 rounded-[24px] bg-slate-100 px-4 py-3.5 text-base text-slate-900"
+            placeholder="Digite sua mensagem"
+            placeholderTextColor="#94a3b8"
+            value={text}
+            onChangeText={setText}
+            multiline
+            maxLength={500}
+          />
+          <TouchableOpacity
+            className={`h-[52px] w-[52px] items-center justify-center rounded-full ${
+              !text.trim() || sending ? 'bg-slate-300' : 'bg-teal-700'
+            }`}
+            onPress={handleSend}
+            disabled={!text.trim() || sending}
+          >
+            {sending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text className="text-xs font-black uppercase tracking-[0.15em] text-white">
+                Enviar
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );

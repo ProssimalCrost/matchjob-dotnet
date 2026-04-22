@@ -2,8 +2,8 @@ import 'react-native-reanimated';
 import './global.css';
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 import { AuthProvider, useAuth } from './services/AuthContext';
@@ -23,29 +23,59 @@ function MainTabs() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#fff',
-          borderTopColor: '#e2e8f0',
-          paddingBottom: 6,
-          paddingTop: 6,
-          height: 60,
+          height: 72,
+          backgroundColor: '#f8fafc',
+          borderTopWidth: 1,
+          borderTopColor: '#dbe4f0',
+          paddingTop: 8,
+          paddingBottom: 10,
         },
-        tabBarActiveTintColor: '#4f46e5',
-        tabBarInactiveTintColor: '#aaa',
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
+        tabBarActiveTintColor: '#0f766e',
+        tabBarInactiveTintColor: '#94a3b8',
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '700',
+        },
       }}
     >
       <Tab.Screen
         name="Profissionais"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>Buscar</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: focused ? '#ccfbf1' : '#e2e8f0',
+              }}
+            >
+              <Text style={{ color, fontSize: 12, fontWeight: '800' }}>JOB</Text>
+            </View>
+          ),
         }}
       />
       <Tab.Screen
         name="Mensagens"
         component={ConversationsScreen}
         options={{
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 22, color }}>Chat</Text>,
+          tabBarIcon: ({ color, focused }) => (
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: focused ? '#fef3c7' : '#e2e8f0',
+              }}
+            >
+              <Text style={{ color, fontSize: 12, fontWeight: '800' }}>MSG</Text>
+            </View>
+          ),
         }}
       />
     </Tab.Navigator>
@@ -56,15 +86,16 @@ function AppStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#4f46e5' },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: '#0f172a' },
+        headerTintColor: '#f8fafc',
         headerTitleStyle: { fontWeight: '800' },
-        headerBackTitle: 'Voltar',
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: '#edf4f7' },
       }}
     >
       <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Chat' }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ title: 'Conversa' }} />
     </Stack.Navigator>
   );
 }
@@ -83,9 +114,16 @@ function RootNavigator() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-indigo-50">
-        <ActivityIndicator size="large" color="#4f46e5" />
-        <Text className="mt-3 font-semibold text-indigo-600">MatchJob</Text>
+      <View className="flex-1 items-center justify-center bg-slate-950">
+        <View className="mb-5 rounded-[28px] border border-teal-400/20 bg-white/5 px-6 py-5">
+          <Text className="text-3xl font-black uppercase tracking-[0.2em] text-white">
+            MatchJob
+          </Text>
+        </View>
+        <ActivityIndicator size="large" color="#2dd4bf" />
+        <Text className="mt-4 text-sm font-semibold text-slate-300">
+          Preparando sua rede profissional
+        </Text>
       </View>
     );
   }
@@ -97,7 +135,9 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <RootNavigator />
+        <View className="flex-1 bg-[#edf4f7]">
+          <RootNavigator />
+        </View>
       </NavigationContainer>
     </AuthProvider>
   );

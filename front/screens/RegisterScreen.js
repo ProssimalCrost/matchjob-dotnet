@@ -15,8 +15,8 @@ import { useAuth } from '../services/AuthContext';
 import { authRegister } from '../services/api';
 
 const ROLES = [
-  { key: 'CLIENT', icon: 'Cliente', label: 'Cliente', desc: 'Quero contratar' },
-  { key: 'PROFESSIONAL', icon: 'Profissional', label: 'Profissional', desc: 'Quero trabalhar' },
+  { key: 'CLIENT', title: 'Cliente', desc: 'Quero contratar profissionais' },
+  { key: 'PROFESSIONAL', title: 'Profissional', desc: 'Quero receber oportunidades' },
 ];
 
 export default function RegisterScreen({ navigation }) {
@@ -52,115 +52,129 @@ export default function RegisterScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-indigo-50"
+      className="flex-1 bg-[#fff7ed]"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        contentContainerClassName="flex-grow px-6 pb-10 pt-14"
+        contentContainerClassName="flex-grow px-6 pb-10 pt-12"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-6">
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mb-3 self-start">
-            <Text className="text-xl font-semibold text-indigo-600">Voltar</Text>
-          </TouchableOpacity>
-          <Text className="text-3xl font-black text-slate-900">Criar conta</Text>
-          <Text className="mt-1 text-sm text-slate-500">Junte-se ao MatchJob</Text>
-        </View>
-
-        <View className="rounded-3xl bg-white p-6 shadow-sm">
-          <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Nome completo
-          </Text>
-          <TextInput
-            className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900"
-            placeholder="Seu nome"
-            placeholderTextColor="#94a3b8"
-            value={name}
-            onChangeText={setName}
-          />
-
-          <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Email
-          </Text>
-          <TextInput
-            className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900"
-            placeholder="seu@email.com"
-            placeholderTextColor="#94a3b8"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-
-          <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Senha
-          </Text>
-          <TextInput
-            className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900"
-            placeholder="Minimo 4 caracteres"
-            placeholderTextColor="#94a3b8"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          <Text className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Voce e...
-          </Text>
-          <View className="mb-6 flex-row gap-3">
-            {ROLES.map((item) => {
-              const selected = role === item.key;
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  className={`flex-1 rounded-2xl border-2 px-4 py-4 ${
-                    selected
-                      ? 'border-indigo-600 bg-indigo-50'
-                      : 'border-slate-200 bg-slate-50'
-                  }`}
-                  onPress={() => setRole(item.key)}
-                  activeOpacity={0.8}
-                >
-                  <Text
-                    className={`text-center text-base font-bold ${
-                      selected ? 'text-indigo-600' : 'text-slate-700'
-                    }`}
-                  >
-                    {item.icon}
-                  </Text>
-                  <Text
-                    className={`mt-2 text-center text-sm font-bold ${
-                      selected ? 'text-indigo-600' : 'text-slate-700'
-                    }`}
-                  >
-                    {item.label}
-                  </Text>
-                  <Text className="mt-1 text-center text-xs text-slate-400">{item.desc}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            className={`items-center rounded-2xl bg-indigo-600 py-4 ${
-              loading ? 'opacity-70' : ''
-            }`}
-            onPress={handleRegister}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white">Criar conta</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => navigation.goBack()} className="mt-5 items-center">
-            <Text className="text-sm text-slate-600">
-              Ja tem conta? <Text className="font-bold text-indigo-600">Entrar</Text>
+        <View className="w-full self-center" style={{ maxWidth: 980 }}>
+          <TouchableOpacity onPress={() => navigation.goBack()} className="mb-4 self-start">
+            <Text className="text-sm font-black uppercase tracking-[0.25em] text-orange-500">
+              Voltar
             </Text>
           </TouchableOpacity>
+
+          <View className="mb-6 rounded-[28px] bg-slate-950 px-6 pb-7 pt-8">
+            <Text className="text-xs font-black uppercase tracking-[0.35em] text-orange-300">
+              Nova conta
+            </Text>
+            <Text className="mt-3 text-4xl font-black leading-10 text-white">
+              Monte seu perfil e comece agora.
+            </Text>
+            <Text className="mt-3 text-sm leading-6 text-slate-300">
+              Escolha como quer entrar no MatchJob e finalize o cadastro em poucos passos.
+            </Text>
+          </View>
+
+          <View className="rounded-[28px] border border-orange-100 bg-white px-5 py-6">
+            <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+              Nome completo
+            </Text>
+            <TextInput
+              className="mb-4 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3.5 text-base text-slate-900"
+              placeholder="Seu nome"
+              placeholderTextColor="#94a3b8"
+              value={name}
+              onChangeText={setName}
+            />
+
+            <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+              Email
+            </Text>
+            <TextInput
+              className="mb-4 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3.5 text-base text-slate-900"
+              placeholder="seu@email.com"
+              placeholderTextColor="#94a3b8"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+              Senha
+            </Text>
+            <TextInput
+              className="mb-5 rounded-[18px] border border-slate-200 bg-slate-50 px-4 py-3.5 text-base text-slate-900"
+              placeholder="Minimo 4 caracteres"
+              placeholderTextColor="#94a3b8"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+
+            <Text className="mb-3 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+              Escolha seu lado
+            </Text>
+
+            <View className="mb-6 gap-3">
+              {ROLES.map((item) => {
+                const selected = role === item.key;
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    className={`rounded-[20px] border px-4 py-4 ${
+                      selected
+                        ? 'border-orange-400 bg-orange-50'
+                        : 'border-slate-200 bg-slate-50'
+                    }`}
+                    onPress={() => setRole(item.key)}
+                    activeOpacity={0.85}
+                  >
+                    <Text
+                      className={`text-base font-black ${
+                        selected ? 'text-orange-600' : 'text-slate-800'
+                      }`}
+                    >
+                      {item.title}
+                    </Text>
+                    <Text
+                      className={`mt-1 text-sm ${
+                        selected ? 'text-orange-700' : 'text-slate-500'
+                      }`}
+                    >
+                      {item.desc}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <TouchableOpacity
+              className={`items-center rounded-[20px] bg-slate-950 py-4 ${
+                loading ? 'opacity-70' : ''
+              }`}
+              onPress={handleRegister}
+              disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text className="text-base font-black uppercase tracking-wide text-white">
+                  Criar conta
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => navigation.goBack()} className="mt-5 items-center">
+              <Text className="text-sm text-slate-500">
+                Ja tem conta? <Text className="font-bold text-orange-500">Entrar</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

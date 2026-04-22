@@ -40,86 +40,93 @@ export default function LoginScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      className="flex-1 bg-indigo-50"
+      className="flex-1 bg-slate-950"
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
         contentContainerClassName="flex-grow justify-center px-6 py-10"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-8 items-center">
-          <Text className="text-5xl font-black text-slate-900">
-            Match<Text className="text-indigo-600">Job</Text>
-          </Text>
-          <Text className="mt-1 text-sm text-slate-500">
-            Conectando talentos a oportunidades
-          </Text>
-        </View>
+        <View className="w-full self-center" style={{ maxWidth: 980 }}>
+          <View className="overflow-hidden rounded-[32px] border border-white/10 bg-slate-900">
+            <View className="bg-teal-400 px-6 pb-8 pt-10">
+              <Text className="text-xs font-black uppercase tracking-[0.35em] text-slate-900">
+                MatchJob
+              </Text>
+              <Text className="mt-4 text-4xl font-black leading-10 text-slate-950">
+                Entre e encontre o proximo trabalho certo.
+              </Text>
+              <Text className="mt-3 max-w-[280px] text-sm leading-6 text-slate-900/80">
+                Profissionais e clientes no mesmo lugar, com conversa rapida e perfis objetivos.
+              </Text>
+            </View>
 
-        <View className="rounded-3xl bg-white p-6 shadow-sm">
-          <Text className="mb-5 text-2xl font-extrabold text-slate-900">Entrar</Text>
+            <View className="px-6 pb-6 pt-6">
+              <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+                Email
+              </Text>
+              <TextInput
+                className="mb-4 rounded-[20px] border border-slate-800 bg-slate-950 px-4 py-3.5 text-base text-white"
+                placeholder="seu@email.com"
+                placeholderTextColor="#64748b"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
 
-          <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Email
-          </Text>
-          <TextInput
-            className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900"
-            placeholder="seu@email.com"
-            placeholderTextColor="#94a3b8"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+              <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
+                Senha
+              </Text>
+              <TextInput
+                className="mb-5 rounded-[20px] border border-slate-800 bg-slate-950 px-4 py-3.5 text-base text-white"
+                placeholder="******"
+                placeholderTextColor="#64748b"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
 
-          <Text className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            Senha
-          </Text>
-          <TextInput
-            className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-base text-slate-900"
-            placeholder="••••••"
-            placeholderTextColor="#94a3b8"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+              <TouchableOpacity
+                className={`items-center rounded-[20px] bg-amber-300 py-4 ${
+                  loading ? 'opacity-70' : ''
+                }`}
+                onPress={handleLogin}
+                disabled={loading}
+              >
+                {loading ? (
+                  <ActivityIndicator color="#0f172a" />
+                ) : (
+                  <Text className="text-base font-black uppercase tracking-wide text-slate-950">
+                    Entrar
+                  </Text>
+                )}
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            className={`mt-1 items-center rounded-2xl bg-indigo-600 py-4 ${
-              loading ? 'opacity-70' : ''
-            }`}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text className="text-base font-bold text-white">Entrar</Text>
-            )}
-          </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Register')}
+                className="mt-5 items-center"
+              >
+                <Text className="text-sm text-slate-400">
+                  Nao tem conta? <Text className="font-bold text-teal-300">Cadastre-se</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-            className="mt-5 items-center"
-          >
-            <Text className="text-sm text-slate-600">
-              Nao tem conta? <Text className="font-bold text-indigo-600">Cadastre-se</Text>
+          <View className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
+            <Text className="text-[11px] font-black uppercase tracking-[0.25em] text-teal-300">
+              Contas de teste
             </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View className="mt-6 rounded-2xl border border-indigo-100 bg-indigo-100/70 p-4">
-          <Text className="mb-2 text-xs font-bold uppercase tracking-wide text-indigo-700">
-            Contas de teste
-          </Text>
-          <Text className="font-mono text-xs leading-5 text-slate-600">
-            Cliente: joao@matchjob.com
-          </Text>
-          <Text className="font-mono text-xs leading-5 text-slate-600">
-            Profissional: carlos@matchjob.com
-          </Text>
-          <Text className="font-mono text-xs leading-5 text-slate-600">Senha: 123456</Text>
+            <Text className="mt-3 font-mono text-xs leading-6 text-slate-300">
+              Cliente: joao@matchjob.com
+            </Text>
+            <Text className="font-mono text-xs leading-6 text-slate-300">
+              Profissional: carlos@matchjob.com
+            </Text>
+            <Text className="font-mono text-xs leading-6 text-slate-300">Senha: 123456</Text>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
