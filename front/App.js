@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, Text, View } from 'react-native';
 
+import { AppBackdrop, BrandMark, palette, useResponsiveLayout } from './components/MatchJobUI';
 import { AuthProvider, useAuth } from './services/AuthContext';
 import ChatScreen from './screens/ChatScreen';
 import ConversationsScreen from './screens/ConversationsScreen';
@@ -18,23 +19,35 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 function MainTabs() {
+  const layout = useResponsiveLayout();
+  const isDesktop = layout.isDesktop;
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          height: 72,
-          backgroundColor: '#f8fafc',
-          borderTopWidth: 1,
-          borderTopColor: '#dbe4f0',
-          paddingTop: 8,
-          paddingBottom: 10,
+          height: isDesktop ? 82 : 74,
+          backgroundColor: '#ffffff',
+          borderTopWidth: 0,
+          paddingTop: 10,
+          paddingBottom: 12,
+          paddingHorizontal: isDesktop ? 26 : 12,
+          marginHorizontal: isDesktop ? 20 : 12,
+          marginBottom: isDesktop ? 16 : 10,
+          borderRadius: 24,
+          position: 'absolute',
+          left: 0,
+          right: 0,
         },
-        tabBarActiveTintColor: '#0f766e',
-        tabBarInactiveTintColor: '#94a3b8',
+        tabBarActiveTintColor: palette.primaryStrong,
+        tabBarInactiveTintColor: '#8a92bf',
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
+        },
+        sceneStyle: {
+          backgroundColor: 'transparent',
         },
       }}
     >
@@ -50,7 +63,7 @@ function MainTabs() {
                 borderRadius: 17,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: focused ? '#ccfbf1' : '#e2e8f0',
+                backgroundColor: focused ? '#eef2ff' : '#eff2fb',
               }}
             >
               <Text style={{ color, fontSize: 12, fontWeight: '800' }}>JOB</Text>
@@ -70,7 +83,7 @@ function MainTabs() {
                 borderRadius: 17,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: focused ? '#fef3c7' : '#e2e8f0',
+                backgroundColor: focused ? '#eef2ff' : '#eff2fb',
               }}
             >
               <Text style={{ color, fontSize: 12, fontWeight: '800' }}>MSG</Text>
@@ -86,11 +99,11 @@ function AppStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#0f172a' },
+        headerStyle: { backgroundColor: palette.night },
         headerTintColor: '#f8fafc',
         headerTitleStyle: { fontWeight: '800' },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: '#edf4f7' },
+        contentStyle: { backgroundColor: '#4e71e8' },
       }}
     >
       <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
@@ -114,17 +127,20 @@ function RootNavigator() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-slate-950">
-        <View className="mb-5 rounded-[28px] border border-teal-400/20 bg-white/5 px-6 py-5">
-          <Text className="text-3xl font-black uppercase tracking-[0.2em] text-white">
-            MatchJob
-          </Text>
+      <AppBackdrop>
+        <View className="flex-1 items-center justify-center px-6">
+          <View className="mb-5 items-center">
+            <BrandMark size={72} />
+            <Text className="mt-4 text-4xl font-black text-white">MatchJobs</Text>
+            <Text className="mt-2 text-sm font-semibold text-white/75">
+              Preparando sua rede profissional
+            </Text>
+          </View>
+          <View className="rounded-[28px] bg-white/10 px-8 py-6">
+            <ActivityIndicator size="large" color="#ffffff" />
+          </View>
         </View>
-        <ActivityIndicator size="large" color="#2dd4bf" />
-        <Text className="mt-4 text-sm font-semibold text-slate-300">
-          Preparando sua rede profissional
-        </Text>
-      </View>
+      </AppBackdrop>
     );
   }
 
@@ -135,7 +151,7 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <View className="flex-1 bg-[#edf4f7]">
+        <View className="flex-1 bg-[#4e71e8]">
           <RootNavigator />
         </View>
       </NavigationContainer>

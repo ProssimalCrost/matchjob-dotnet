@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { AppBackdrop, Panel, ResponsiveShell, Tag, palette } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
 import { getMessages, sendMessage } from '../services/api';
 
@@ -73,101 +74,162 @@ export default function ChatScreen({ route, navigation }) {
     }
   };
 
-  const renderMessage = ({ item }) => {
-    const isMe = item.SenderId === user.UserId;
-
-    return (
-      <View className={`mb-4 flex-row ${isMe ? 'justify-end' : 'justify-start'}`}>
-        <View
-          className={`max-w-[78%] rounded-[24px] px-4 py-3 ${
-            isMe ? 'rounded-tr-[8px] bg-slate-950' : 'rounded-tl-[8px] bg-white'
-          }`}
-        >
-          {!isMe ? (
-            <Text className="mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-teal-700">
-              {item.SenderName}
-            </Text>
-          ) : null}
-
-          <Text className={`text-base leading-6 ${isMe ? 'text-white' : 'text-slate-800'}`}>
-            {item.Content}
-          </Text>
-
-          <Text className={`mt-2 text-right text-[10px] font-semibold ${isMe ? 'text-slate-400' : 'text-slate-400'}`}>
-            {formatTime(item.CreatedAt)}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-[#edf4f7]"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={90}
-    >
-      <View className="border-b border-slate-200 bg-white px-4 py-3">
-        <View className="w-full self-center" style={{ maxWidth: 1100 }}>
-          <Text className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">
-            Conversa ativa
-          </Text>
-          <Text className="mt-1 text-lg font-black text-slate-900">{otherName}</Text>
-        </View>
-      </View>
+    <AppBackdrop>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={90}
+      >
+        <ResponsiveShell maxWidth={1120}>
+          <View style={{ paddingTop: 24, paddingBottom: 120, flex: 1 }}>
+            <Panel style={{ marginBottom: 18 }}>
+              <Text style={{ color: palette.textMuted, fontSize: 12, fontWeight: '800' }}>CONVERSA ATIVA</Text>
+              <Text style={{ color: palette.text, fontSize: 26, fontWeight: '900', marginTop: 8 }}>
+                {otherName}
+              </Text>
+              <View style={{ marginTop: 14, flexDirection: 'row', gap: 10 }}>
+                <Tag>Online</Tag>
+                <Tag>{messages.length} mensagens</Tag>
+              </View>
+            </Panel>
 
-      {loading ? (
-        <ActivityIndicator color="#0f766e" size="large" style={{ marginTop: 60 }} />
-      ) : (
-        <FlatList
-          ref={listRef}
-          data={messages}
-          keyExtractor={(item) => item.Id.toString()}
-          renderItem={renderMessage}
-          contentContainerClassName="px-4 pb-3 pt-4"
-          contentContainerStyle={{ width: '100%', maxWidth: 1100, alignSelf: 'center' }}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View className="items-center rounded-[28px] bg-white px-8 py-12">
-              <Text className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">
-                Inicio da conversa
-              </Text>
-              <Text className="mt-4 text-center text-lg font-black text-slate-700">
-                Escreva a primeira mensagem para {otherName}
-              </Text>
+            <Panel style={{ flex: 1, paddingBottom: 14 }}>
+              {loading ? (
+                <ActivityIndicator color={palette.primary} size="large" style={{ marginTop: 60 }} />
+              ) : (
+                <FlatList
+                  ref={listRef}
+                  data={messages}
+                  keyExtractor={(item) => item.Id.toString()}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={{ paddingBottom: 6 }}
+                  renderItem={({ item }) => {
+                    const isMe = item.SenderId === user.UserId;
+
+                    return (
+                      <View
+                        style={{
+                          alignItems: isMe ? 'flex-end' : 'flex-start',
+                          marginBottom: 14,
+                        }}
+                      >
+                        <View
+                          style={{
+                            maxWidth: '82%',
+                            borderRadius: 24,
+                            paddingHorizontal: 16,
+                            paddingVertical: 14,
+                            backgroundColor: isMe ? palette.primary : '#f4f6ff',
+                          }}
+                        >
+                          {!isMe ? (
+                            <Text
+                              style={{
+                                color: palette.primaryStrong,
+                                fontSize: 12,
+                                fontWeight: '800',
+                                marginBottom: 6,
+                              }}
+                            >
+                              {item.SenderName}
+                            </Text>
+                          ) : null}
+                          <Text style={{ color: isMe ? '#fff' : palette.text, fontSize: 15, lineHeight: 23 }}>
+                            {item.Content}
+                          </Text>
+                          <Text
+                            style={{
+                              color: isMe ? 'rgba(255,255,255,0.72)' : palette.textMuted,
+                              fontSize: 11,
+                              fontWeight: '700',
+                              marginTop: 8,
+                              textAlign: 'right',
+                            }}
+                          >
+                            {formatTime(item.CreatedAt)}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  }}
+                  ListEmptyComponent={
+                    <View style={{ alignItems: 'center', paddingVertical: 52 }}>
+                      <Text style={{ color: palette.text, fontSize: 22, fontWeight: '900' }}>
+                        Comece a conversa
+                      </Text>
+                      <Text
+                        style={{
+                          color: palette.textMuted,
+                          fontSize: 14,
+                          lineHeight: 22,
+                          marginTop: 10,
+                          textAlign: 'center',
+                          maxWidth: 320,
+                        }}
+                      >
+                        Escreva a primeira mensagem para abrir o contato com {otherName}.
+                      </Text>
+                    </View>
+                  }
+                />
+              )}
+            </Panel>
+          </View>
+        </ResponsiveShell>
+
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 18,
+            left: 20,
+            right: 20,
+            alignSelf: 'center',
+            maxWidth: 1120,
+          }}
+        >
+          <Panel style={{ padding: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12 }}>
+              <TextInput
+                style={{
+                  flex: 1,
+                  minHeight: 54,
+                  maxHeight: 120,
+                  borderRadius: 18,
+                  backgroundColor: '#f4f6ff',
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  color: palette.text,
+                  fontSize: 15,
+                  textAlignVertical: 'top',
+                }}
+                placeholder="Digite sua mensagem"
+                placeholderTextColor="#98a0c9"
+                value={text}
+                onChangeText={setText}
+                multiline
+                maxLength={500}
+              />
+              <TouchableOpacity
+                style={{
+                  backgroundColor: !text.trim() || sending ? '#c7cff4' : palette.primary,
+                  borderRadius: 18,
+                  minHeight: 54,
+                  paddingHorizontal: 18,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={handleSend}
+                disabled={!text.trim() || sending}
+              >
+                <Text style={{ color: '#fff', fontWeight: '800', fontSize: 14 }}>
+                  {sending ? '...' : 'Enviar'}
+                </Text>
+              </TouchableOpacity>
             </View>
-          }
-        />
-      )}
-
-      <View className="border-t border-slate-200 bg-white px-3 pb-4 pt-3">
-        <View className="w-full self-center flex-row items-end gap-2" style={{ maxWidth: 1100 }}>
-          <TextInput
-            className="max-h-[120px] flex-1 rounded-[24px] bg-slate-100 px-4 py-3.5 text-base text-slate-900"
-            placeholder="Digite sua mensagem"
-            placeholderTextColor="#94a3b8"
-            value={text}
-            onChangeText={setText}
-            multiline
-            maxLength={500}
-          />
-          <TouchableOpacity
-            className={`h-[52px] w-[52px] items-center justify-center rounded-full ${
-              !text.trim() || sending ? 'bg-slate-300' : 'bg-teal-700'
-            }`}
-            onPress={handleSend}
-            disabled={!text.trim() || sending}
-          >
-            {sending ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <Text className="text-xs font-black uppercase tracking-[0.15em] text-white">
-                Enviar
-              </Text>
-            )}
-          </TouchableOpacity>
+          </Panel>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </AppBackdrop>
   );
 }

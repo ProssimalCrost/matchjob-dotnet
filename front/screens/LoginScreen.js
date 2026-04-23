@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
+import {
+  AuthLayout,
+  InputField,
+  Label,
+  Panel,
+  PrimaryButton,
+  SecondaryButton,
+} from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
 import { authLogin } from '../services/api';
 
@@ -39,96 +37,60 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-slate-950"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerClassName="flex-grow justify-center px-6 py-10"
-        keyboardShouldPersistTaps="handled"
-      >
-        <View className="w-full self-center" style={{ maxWidth: 980 }}>
-          <View className="overflow-hidden rounded-[32px] border border-white/10 bg-slate-900">
-            <View className="bg-teal-400 px-6 pb-8 pt-10">
-              <Text className="text-xs font-black uppercase tracking-[0.35em] text-slate-900">
-                MatchJob
-              </Text>
-              <Text className="mt-4 text-4xl font-black leading-10 text-slate-950">
-                Entre e encontre o proximo trabalho certo.
-              </Text>
-              <Text className="mt-3 max-w-[280px] text-sm leading-6 text-slate-900/80">
-                Profissionais e clientes no mesmo lugar, com conversa rapida e perfis objetivos.
-              </Text>
-            </View>
-
-            <View className="px-6 pb-6 pt-6">
-              <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
-                Email
-              </Text>
-              <TextInput
-                className="mb-4 rounded-[20px] border border-slate-800 bg-slate-950 px-4 py-3.5 text-base text-white"
-                placeholder="seu@email.com"
-                placeholderTextColor="#64748b"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              <Text className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.25em] text-slate-400">
-                Senha
-              </Text>
-              <TextInput
-                className="mb-5 rounded-[20px] border border-slate-800 bg-slate-950 px-4 py-3.5 text-base text-white"
-                placeholder="******"
-                placeholderTextColor="#64748b"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-
-              <TouchableOpacity
-                className={`items-center rounded-[20px] bg-amber-300 py-4 ${
-                  loading ? 'opacity-70' : ''
-                }`}
-                onPress={handleLogin}
-                disabled={loading}
-              >
-                {loading ? (
-                  <ActivityIndicator color="#0f172a" />
-                ) : (
-                  <Text className="text-base font-black uppercase tracking-wide text-slate-950">
-                    Entrar
-                  </Text>
-                )}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => navigation.navigate('Register')}
-                className="mt-5 items-center"
-              >
-                <Text className="text-sm text-slate-400">
-                  Nao tem conta? <Text className="font-bold text-teal-300">Cadastre-se</Text>
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View className="mt-5 rounded-[24px] border border-white/10 bg-white/5 p-4">
-            <Text className="text-[11px] font-black uppercase tracking-[0.25em] text-teal-300">
-              Contas de teste
-            </Text>
-            <Text className="mt-3 font-mono text-xs leading-6 text-slate-300">
-              Cliente: joao@matchjob.com
-            </Text>
-            <Text className="font-mono text-xs leading-6 text-slate-300">
-              Profissional: carlos@matchjob.com
-            </Text>
-            <Text className="font-mono text-xs leading-6 text-slate-300">Senha: 123456</Text>
-          </View>
+    <AuthLayout
+      title="Bem-vindo de volta!"
+      subtitle="Faca login para continuar e acompanhar vagas, conversas e perfis em um unico lugar."
+      heroTitle="Conectando talentos as melhores oportunidades"
+      heroSubtitle="Uma experiencia mais editorial, clara e elegante para quem busca contratar ou ser encontrado."
+      heroPoints={[
+        'Fluxo limpo para login, cadastro e descoberta de vagas.',
+        'Cards mais fortes no desktop e leitura otimizada no mobile.',
+        'Visual inspirado nas referencias com azul profundo e superficies claras.',
+      ]}
+      compactHeroFooter={
+        <View style={{ gap: 10 }}>
+          <SecondaryButton title="Criar conta" onPress={() => navigation.navigate('Register')} muted />
+          <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12 }}>
+            Contas de teste: `joao@matchjob.com` ou `carlos@matchjob.com` com senha `123456`
+          </Text>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      }
+    >
+      <Label>E-mail</Label>
+      <InputField
+        placeholder="seu@email.com"
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+
+      <Label>Senha</Label>
+      <InputField
+        placeholder="Digite sua senha"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+
+      <Text style={{ alignSelf: 'flex-end', color: '#6d28d9', fontSize: 13, fontWeight: '700' }}>
+        Esqueceu sua senha?
+      </Text>
+
+      <View style={{ marginTop: 18, gap: 12 }}>
+        <PrimaryButton title="Entrar" onPress={handleLogin} loading={loading} />
+        <SecondaryButton title="Criar conta" onPress={() => navigation.navigate('Register')} />
+      </View>
+
+      <Panel style={{ marginTop: 20, padding: 18 }}>
+        <Text style={{ color: '#1f2456', fontWeight: '800', fontSize: 14 }}>Acesso rapido para teste</Text>
+        <Text style={{ color: '#6e74a6', marginTop: 8, lineHeight: 22 }}>
+          Cliente: joao@matchjob.com
+        </Text>
+        <Text style={{ color: '#6e74a6', lineHeight: 22 }}>Profissional: carlos@matchjob.com</Text>
+        <Text style={{ color: '#6e74a6', lineHeight: 22 }}>Senha: 123456</Text>
+      </Panel>
+    </AuthLayout>
   );
 }
