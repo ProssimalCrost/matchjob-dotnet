@@ -7,7 +7,8 @@ import {
   Panel,
   PrimaryButton,
   ResponsiveShell,
-  StatCard,
+  SidebarCard,
+  SurfaceHeader,
   Tag,
   palette,
   useResponsiveLayout,
@@ -54,30 +55,31 @@ export default function ProfileScreen({ navigation, route }) {
     <AppBackdrop>
       <ScrollView showsVerticalScrollIndicator={false}>
         <ResponsiveShell maxWidth={layout.contentMaxWidth}>
+          <View style={{ marginTop: 28 }}>
+            <SurfaceHeader
+              title="Perfil profissional"
+              subtitle="Revise habilidades, disponibilidade e dados de contato antes de iniciar a conversa."
+              action={
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Text style={{ color: palette.primaryStrong, fontWeight: '800', fontSize: 14 }}>
+                    Voltar
+                  </Text>
+                </TouchableOpacity>
+              }
+            />
+          </View>
+
           <View
             style={{
-              borderRadius: 34,
-              backgroundColor: avatarColor(p.UserName),
+              borderRadius: 12,
+              backgroundColor: '#ffffff',
               padding: 24,
               overflow: 'hidden',
-              marginTop: 28,
+              marginTop: 20,
+              borderWidth: 1,
+              borderColor: '#ebeef5',
             }}
           >
-            <View
-              style={{
-                position: 'absolute',
-                width: 180,
-                height: 180,
-                borderRadius: 999,
-                backgroundColor: 'rgba(255,255,255,0.1)',
-                right: -30,
-                top: -40,
-              }}
-            />
-            <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginBottom: 22 }}>
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>Voltar</Text>
-            </TouchableOpacity>
-
             <View
               style={{
                 flexDirection: layout.isDesktop ? 'row' : 'column',
@@ -92,9 +94,7 @@ export default function ProfileScreen({ navigation, route }) {
                   borderRadius: 55,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: 'rgba(255,255,255,0.22)',
-                  borderWidth: 3,
-                  borderColor: 'rgba(255,255,255,0.35)',
+                  backgroundColor: avatarColor(p.UserName),
                 }}
               >
                 <Text style={{ color: '#fff', fontSize: 42, fontWeight: '900' }}>
@@ -103,16 +103,14 @@ export default function ProfileScreen({ navigation, route }) {
               </View>
 
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#fff', fontSize: 30, fontWeight: '900' }}>{p.UserName}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.84)', fontSize: 16, marginTop: 6 }}>
-                  {p.Category}
-                </Text>
-                <Text style={{ color: 'rgba(255,255,255,0.74)', fontSize: 14, marginTop: 10, lineHeight: 22 }}>
+                <Text style={{ color: palette.text, fontSize: 30, fontWeight: '900' }}>{p.UserName}</Text>
+                <Text style={{ color: palette.textMuted, fontSize: 16, marginTop: 6 }}>{p.Category}</Text>
+                <Text style={{ color: palette.textMuted, fontSize: 14, marginTop: 10, lineHeight: 22 }}>
                   {p.Location || 'Disponivel para remoto e presencial.'}
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 10, marginTop: 16, flexWrap: 'wrap' }}>
-                  <Tag tone="dark">{p.PriceRange || 'Sob consulta'}</Tag>
-                  <Tag tone="dark">{`${p.Rating?.toFixed(1) || '0.0'} match`}</Tag>
+                  <Tag>{p.PriceRange || 'Sob consulta'}</Tag>
+                  <Tag>{`${p.Rating?.toFixed(1) || '0.0'} match`}</Tag>
                 </View>
               </View>
 
@@ -132,14 +130,18 @@ export default function ProfileScreen({ navigation, route }) {
           >
             <View style={{ flex: layout.isDesktop ? 1.25 : undefined, gap: 18 }}>
               <Panel>
-                <Text style={{ color: palette.text, fontSize: 13, fontWeight: '800' }}>Sobre o profissional</Text>
+                <Text style={{ color: palette.text, fontSize: 13, fontWeight: '800' }}>
+                  Sobre o profissional
+                </Text>
                 <Text style={{ color: palette.textMuted, fontSize: 15, lineHeight: 26, marginTop: 12 }}>
                   {p.Description || 'Perfil ainda sem descricao detalhada.'}
                 </Text>
               </Panel>
 
               <Panel>
-                <Text style={{ color: palette.text, fontSize: 13, fontWeight: '800' }}>Principais habilidades</Text>
+                <Text style={{ color: palette.text, fontSize: 13, fontWeight: '800' }}>
+                  Principais habilidades
+                </Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
                   {p.Tags?.length ? (
                     p.Tags.map((tag, index) => <Tag key={`${tag}-${index}`}>{tag}</Tag>)
@@ -151,12 +153,26 @@ export default function ProfileScreen({ navigation, route }) {
             </View>
 
             <View style={{ flex: 1, gap: 18 }}>
-              <Panel>
-                <View style={{ flexDirection: 'row', gap: 14 }}>
-                  <StatCard label="Avaliacao" value={p.Rating?.toFixed(1) || '0.0'} compact />
-                  <StatCard label="Perfil" value="95%" compact />
+              <SidebarCard title="Resumo do perfil">
+                <View style={{ gap: 12 }}>
+                  <View style={{ borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', padding: 16 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, fontWeight: '700' }}>
+                      Avaliacao
+                    </Text>
+                    <Text style={{ color: '#ffffff', fontSize: 28, fontWeight: '900', marginTop: 8 }}>
+                      {p.Rating?.toFixed(1) || '0.0'}
+                    </Text>
+                  </View>
+                  <View style={{ borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.12)', padding: 16 }}>
+                    <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, fontWeight: '700' }}>
+                      Situacao
+                    </Text>
+                    <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800', marginTop: 8 }}>
+                      Perfil pronto para contato
+                    </Text>
+                  </View>
                 </View>
-              </Panel>
+              </SidebarCard>
 
               <Panel>
                 <View style={{ alignItems: 'center' }}>
@@ -173,7 +189,7 @@ export default function ProfileScreen({ navigation, route }) {
                       lineHeight: 23,
                     }}
                   >
-                    Use o chat para iniciar a conversa e continuar a jornada com a mesma linguagem visual das referencias.
+                    Use o chat para alinhar expectativas, prazos e proximos passos com rapidez.
                   </Text>
                 </View>
               </Panel>

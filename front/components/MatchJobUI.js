@@ -12,18 +12,21 @@ import {
 } from 'react-native';
 
 export const palette = {
-  night: '#17134f',
-  nightSoft: '#251d73',
-  primary: '#4f46e5',
+  night: '#5b21b6',
+  nightSoft: '#6d28d9',
+  primary: '#7c3aed',
   primaryStrong: '#6d28d9',
-  accent: '#60a5fa',
-  surface: '#f8f8ff',
+  accent: '#3b82f6',
+  surface: '#f8f9fc',
   surfaceStrong: '#ffffff',
-  line: '#d8ddf4',
-  text: '#1f2456',
-  textMuted: '#6e74a6',
+  line: '#e5e7eb',
+  text: '#1a1a2e',
+  textMuted: '#6b7280',
   success: '#34c759',
-  badge: '#eef2ff',
+  badge: '#ede9fe',
+  sidebar: '#5b21b6',
+  sidebarAccent: '#6d28d9',
+  sidebarSoft: '#f3e8ff',
 };
 
 export function useResponsiveLayout() {
@@ -39,19 +42,12 @@ export function useResponsiveLayout() {
     isCompact,
     contentMaxWidth: isDesktop ? 1240 : 1120,
     authMaxWidth: isDesktop ? 1180 : 980,
-    cardColumns: isDesktop ? 2 : 1,
+    cardColumns: isDesktop ? 3 : isTablet ? 2 : 1,
   };
 }
 
 export function AppBackdrop({ children }) {
-  return (
-    <View style={styles.backdrop}>
-      <View style={[styles.orb, styles.orbTop]} />
-      <View style={[styles.orb, styles.orbBottom]} />
-      <View style={[styles.orb, styles.orbCenter]} />
-      {children}
-    </View>
-  );
+  return <View style={styles.backdrop}>{children}</View>;
 }
 
 export function ResponsiveShell({ children, maxWidth, padded = true }) {
@@ -77,7 +73,7 @@ export function LogoLockup({ centered = false, light = false }) {
     >
       <View style={styles.logoRow}>
         <BrandMark />
-        <Text style={[styles.logoText, light && { color: '#ffffff' }]}>MatchJobs</Text>
+        <Text style={[styles.logoText, light && { color: '#ffffff' }]}>MatchJob</Text>
       </View>
       <Text
         style={[
@@ -86,7 +82,7 @@ export function LogoLockup({ centered = false, light = false }) {
           light && { color: 'rgba(255,255,255,0.75)' },
         ]}
       >
-        Conectando talentos as melhores oportunidades
+        Conectando talentos e oportunidades
       </Text>
     </View>
   );
@@ -97,7 +93,7 @@ export function BrandMark({ size = 56 }) {
     <View
       style={[
         styles.brandMark,
-        { width: size, height: size, borderRadius: size * 0.34 },
+        { width: size, height: size, borderRadius: Math.max(8, size * 0.22) },
       ]}
     >
       <Text style={{ color: '#fff', fontSize: size * 0.58, fontWeight: '900' }}>M</Text>
@@ -126,10 +122,10 @@ export function HeroPanel({ title, subtitle, points = [], footer }) {
       </View>
 
       <View style={styles.heroCard}>
-        <Text style={styles.heroCardKicker}>Plataforma</Text>
-        <Text style={styles.heroCardTitle}>Experiencia inspirada no layout de onboarding e vagas</Text>
+        <Text style={styles.heroCardKicker}>MatchJob</Text>
+        <Text style={styles.heroCardTitle}>Contratacoes mais claras do primeiro contato ao chat</Text>
         <Text style={styles.heroCardBody}>
-          Blocos claros, destaque em azul e roxo, leitura rapida e hierarquia forte para web e celular.
+          Perfis, filtros e conversas organizados para comparar oportunidades com agilidade.
         </Text>
       </View>
 
@@ -316,8 +312,6 @@ export function DesktopHeader({
 }) {
   return (
     <View style={[styles.desktopHeader, wide && { minHeight: 230 }]}>
-      <View style={styles.headerGlowOne} />
-      <View style={styles.headerGlowTwo} />
       <View style={{ flex: 1, gap: 8 }}>
         <Text style={styles.desktopEyebrow}>{eyebrow}</Text>
         <Text style={styles.desktopTitle}>{title}</Text>
@@ -328,15 +322,108 @@ export function DesktopHeader({
   );
 }
 
+export function SurfaceHeader({ brand = 'MatchJob', title, subtitle, action, compact = false }) {
+  return (
+    <View style={[styles.surfaceHeader, compact && { paddingVertical: 20 }]}>
+      <View style={styles.surfaceHeaderBrand}>
+        <View style={styles.surfaceHeaderBadge}>
+          <Text style={styles.surfaceHeaderBadgeText}>M</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.surfaceHeaderBrandText}>{brand}</Text>
+          <Text style={styles.surfaceHeaderSubtitle}>{subtitle}</Text>
+        </View>
+      </View>
+      <View style={{ flex: 1, minWidth: 220 }}>
+        <Text style={styles.surfaceHeaderTitle}>{title}</Text>
+      </View>
+      {action ? <View>{action}</View> : null}
+    </View>
+  );
+}
+
+export function SearchPanel({ title, subtitle, children }) {
+  return (
+    <Panel style={styles.searchPanel}>
+      {title ? <Text style={styles.searchPanelTitle}>{title}</Text> : null}
+      {subtitle ? <Text style={styles.searchPanelSubtitle}>{subtitle}</Text> : null}
+      <View style={{ marginTop: title || subtitle ? 18 : 0 }}>{children}</View>
+    </Panel>
+  );
+}
+
+export function SidebarCard({ title, children }) {
+  return (
+    <View style={styles.sidebarCard}>
+      <Text style={styles.sidebarCardTitle}>{title}</Text>
+      <View style={{ marginTop: 16 }}>{children}</View>
+    </View>
+  );
+}
+
+export function DashboardFrame({ children, active = 'home', navigation, signOut }) {
+  const layout = useResponsiveLayout();
+
+  if (!layout.isDesktop) {
+    return <AppBackdrop>{children}</AppBackdrop>;
+  }
+
+  const items = [
+    { key: 'home', label: 'Inicio', route: 'Profissionais', mark: 'IN' },
+    { key: 'messages', label: 'Mensagens', route: 'Mensagens', mark: 'MS' },
+  ];
+
+  return (
+    <View style={styles.dashboardFrame}>
+      <View style={styles.dashboardSidebar}>
+        <LogoLockup light />
+
+        <View style={styles.dashboardNav}>
+          {items.map((item) => {
+            const selected = active === item.key;
+            return (
+              <Pressable
+                key={item.key}
+                onPress={() => navigation?.navigate(item.route)}
+                style={[styles.dashboardNavItem, selected && styles.dashboardNavItemActive]}
+              >
+                <View style={[styles.dashboardNavMark, selected && styles.dashboardNavMarkActive]}>
+                  <Text style={[styles.dashboardNavMarkText, selected && { color: palette.sidebar }]}>
+                    {item.mark}
+                  </Text>
+                </View>
+                <Text style={styles.dashboardNavText}>{item.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.dashboardSidebarPanel}>
+          <Text style={styles.dashboardSidebarPanelTitle}>Busca inteligente</Text>
+          <Text style={styles.dashboardSidebarPanelText}>
+            Compare perfis, acompanhe conversas e encontre o melhor contato para cada necessidade.
+          </Text>
+        </View>
+
+        <Pressable onPress={signOut} style={styles.dashboardLogout}>
+          <Text style={styles.dashboardLogoutText}>Sair</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.dashboardContent}>{children}</View>
+    </View>
+  );
+}
+
 export function stylesShadow() {
   return Platform.select({
-    web: { boxShadow: '0 30px 70px rgba(18, 22, 71, 0.18)' },
+    web: { boxShadow: '0 1px 3px rgba(16, 24, 40, 0.08)' },
     default: {
       shadowColor: '#14174a',
-      shadowOpacity: 0.12,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 10 },
-      elevation: 6,
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
+      elevation: 2,
     },
   });
 }
@@ -344,31 +431,7 @@ export function stylesShadow() {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: '#4e71e8',
-  },
-  orb: {
-    position: 'absolute',
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.08)',
-  },
-  orbTop: {
-    width: 240,
-    height: 240,
-    top: -80,
-    left: -30,
-  },
-  orbBottom: {
-    width: 340,
-    height: 340,
-    bottom: -120,
-    right: -80,
-  },
-  orbCenter: {
-    width: 200,
-    height: 200,
-    top: '40%',
-    right: '18%',
-    backgroundColor: 'rgba(108, 92, 231, 0.14)',
+    backgroundColor: palette.surface,
   },
   shell: {
     width: '100%',
@@ -399,14 +462,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.primary,
+    shadowColor: '#7c3aed',
+    shadowOpacity: 0.18,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
   },
   heroPanel: {
     flex: 1,
     minHeight: 620,
-    borderRadius: 36,
+    borderRadius: 16,
     overflow: 'hidden',
     padding: 28,
-    backgroundColor: palette.night,
+    backgroundColor: palette.sidebar,
     ...stylesShadow(),
   },
   heroTitle: {
@@ -448,11 +515,11 @@ const styles = StyleSheet.create({
   },
   heroCard: {
     marginTop: 'auto',
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 22,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: 'rgba(255,255,255,0.14)',
   },
   heroCardKicker: {
     color: '#c7d2fe',
@@ -475,13 +542,13 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   authCard: {
-    borderRadius: 36,
+    borderRadius: 16,
     backgroundColor: palette.surfaceStrong,
     padding: 28,
     minHeight: 620,
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.55)',
+    borderColor: '#eceaf5',
     ...stylesShadow(),
   },
   authTitle: {
@@ -505,9 +572,9 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: palette.line,
-    backgroundColor: '#fbfbff',
+    backgroundColor: '#f9fafb',
     color: palette.text,
-    borderRadius: 18,
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
@@ -519,7 +586,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: {
     minHeight: 56,
-    borderRadius: 18,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: palette.primary,
@@ -531,7 +598,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     minHeight: 54,
-    borderRadius: 18,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
@@ -548,11 +615,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   panel: {
-    borderRadius: 28,
+    borderRadius: 12,
     padding: 22,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.72)',
+    borderColor: '#ebeef5',
     ...stylesShadow(),
   },
   tag: {
@@ -567,7 +634,7 @@ const styles = StyleSheet.create({
   statCard: {
     flex: 1,
     minWidth: 110,
-    borderRadius: 22,
+    borderRadius: 12,
     backgroundColor: '#ffffff',
     paddingVertical: 18,
     paddingHorizontal: 18,
@@ -590,16 +657,16 @@ const styles = StyleSheet.create({
   optionCard: {
     borderWidth: 1,
     borderColor: palette.line,
-    backgroundColor: '#fbfbff',
-    borderRadius: 22,
+    backgroundColor: '#fafbff',
+    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     gap: 12,
     alignItems: 'center',
   },
   optionCardActive: {
-    borderColor: '#b9b4ff',
-    backgroundColor: '#f4f3ff',
+    borderColor: '#c9b5ff',
+    backgroundColor: '#f5f1ff',
   },
   optionMark: {
     width: 22,
@@ -629,32 +696,14 @@ const styles = StyleSheet.create({
   },
   desktopHeader: {
     overflow: 'hidden',
-    borderRadius: 34,
-    backgroundColor: palette.night,
+    borderRadius: 12,
+    backgroundColor: palette.sidebar,
     paddingHorizontal: 24,
     paddingVertical: 24,
     flexDirection: 'row',
     gap: 18,
     alignItems: 'flex-start',
     ...stylesShadow(),
-  },
-  headerGlowOne: {
-    position: 'absolute',
-    width: 160,
-    height: 160,
-    borderRadius: 999,
-    backgroundColor: 'rgba(125, 142, 255, 0.18)',
-    top: -40,
-    right: 60,
-  },
-  headerGlowTwo: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-    borderRadius: 999,
-    backgroundColor: 'rgba(79, 70, 229, 0.24)',
-    bottom: -36,
-    left: -22,
   },
   desktopEyebrow: {
     color: '#c7d2fe',
@@ -674,5 +723,163 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 24,
     maxWidth: 560,
+  },
+  surfaceHeader: {
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#ebeef5',
+    paddingHorizontal: 22,
+    paddingVertical: 18,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 18,
+    alignItems: 'center',
+    ...stylesShadow(),
+  },
+  surfaceHeaderBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+    minWidth: 220,
+  },
+  surfaceHeaderBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: palette.sidebar,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  surfaceHeaderBadgeText: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  surfaceHeaderBrandText: {
+    color: palette.text,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  surfaceHeaderTitle: {
+    color: palette.text,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  surfaceHeaderSubtitle: {
+    color: palette.textMuted,
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 2,
+  },
+  searchPanel: {
+    borderRadius: 12,
+  },
+  searchPanelTitle: {
+    color: palette.text,
+    fontSize: 18,
+    fontWeight: '900',
+  },
+  searchPanelSubtitle: {
+    color: palette.textMuted,
+    fontSize: 14,
+    lineHeight: 22,
+    marginTop: 6,
+  },
+  sidebarCard: {
+    borderRadius: 12,
+    backgroundColor: palette.sidebar,
+    padding: 22,
+    ...stylesShadow(),
+  },
+  sidebarCardTitle: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  dashboardFrame: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: palette.surface,
+  },
+  dashboardSidebar: {
+    width: 264,
+    backgroundColor: palette.sidebar,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  dashboardNav: {
+    marginTop: 34,
+    gap: 8,
+  },
+  dashboardNavItem: {
+    minHeight: 48,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  dashboardNavItemActive: {
+    backgroundColor: palette.sidebarAccent,
+  },
+  dashboardNavMark: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  dashboardNavMarkActive: {
+    backgroundColor: '#ffffff',
+  },
+  dashboardNavMarkText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  dashboardNavText: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  dashboardSidebarPanel: {
+    marginTop: 'auto',
+    borderRadius: 12,
+    padding: 16,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.14)',
+  },
+  dashboardSidebarPanelTitle: {
+    color: '#ffffff',
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  dashboardSidebarPanelText: {
+    color: 'rgba(255,255,255,0.74)',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 8,
+  },
+  dashboardLogout: {
+    minHeight: 46,
+    borderRadius: 8,
+    marginTop: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  dashboardLogoutText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  dashboardContent: {
+    flex: 1,
+    backgroundColor: palette.surface,
   },
 });

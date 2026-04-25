@@ -12,14 +12,15 @@ import {
 } from 'react-native';
 
 import {
-  AppBackdrop,
-  DesktopHeader,
+  DashboardFrame,
   EmptyState,
   Panel,
   PrimaryButton,
   ResponsiveShell,
-  StatCard,
+  SearchPanel,
+  SidebarCard,
   Tag,
+  SurfaceHeader,
   palette,
   useResponsiveLayout,
 } from '../components/MatchJobUI';
@@ -27,13 +28,13 @@ import { useAuth } from '../services/AuthContext';
 import { listProfessionals } from '../services/api';
 
 const CATEGORIES = [
-  'Todos',
-  'Desenvolvimento',
-  'Design',
-  'Marketing',
-  'Fotografia',
-  'Eletrica',
-  'Encanamento',
+  { key: 'Todos', label: 'Todos', bg: '#f3f4f6', text: '#374151' },
+  { key: 'Desenvolvimento', label: 'Dev', bg: '#ede9fe', text: '#6d28d9' },
+  { key: 'Design', label: 'Design', bg: '#fce7f3', text: '#be185d' },
+  { key: 'Marketing', label: 'Marketing', bg: '#dbeafe', text: '#1d4ed8' },
+  { key: 'Fotografia', label: 'Foto', bg: '#ffedd5', text: '#c2410c' },
+  { key: 'Eletrica', label: 'Eletrica', bg: '#e0f2fe', text: '#0369a1' },
+  { key: 'Encanamento', label: 'Encanamento', bg: '#ccfbf1', text: '#0f766e' },
 ];
 
 const COLORS = ['#4f46e5', '#2563eb', '#7c3aed', '#f97316', '#0ea5e9', '#14b8a6'];
@@ -46,82 +47,54 @@ function ProfessionalCard({ item, navigation, wide }) {
       activeOpacity={0.9}
       onPress={() => navigation.navigate('Profile', { professional: item })}
     >
-      <Panel style={{ minHeight: wide ? 250 : undefined }}>
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 14 }}>
-          <View
-            style={{
-              width: 62,
-              height: 62,
-              borderRadius: 22,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: avatarColor(item.UserName),
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900' }}>
-              {item.UserName?.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                gap: 10,
-                alignItems: 'flex-start',
-              }}
-            >
-              <View style={{ flex: 1 }}>
-                <Text style={{ color: palette.text, fontSize: 22, fontWeight: '900' }}>
-                  {item.UserName}
-                </Text>
-                <Text
-                  style={{
-                    color: palette.primaryStrong,
-                    fontSize: 14,
-                    fontWeight: '700',
-                    marginTop: 4,
-                  }}
-                >
-                  {item.Category}
-                </Text>
-              </View>
-              <Tag tone="success">{`${item.Rating?.toFixed(1) || '0.0'} match`}</Tag>
-            </View>
-
-            <Text style={{ color: palette.textMuted, marginTop: 14, fontSize: 14, lineHeight: 22 }}>
-              {item.Location || 'Disponivel para atendimento remoto e presencial.'}
-            </Text>
-          </View>
+      <Panel style={{ minHeight: wide ? 356 : undefined, padding: 22, alignItems: 'center' }}>
+        <View
+          style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: avatarColor(item.UserName),
+            marginBottom: 14,
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: 32, fontWeight: '900' }}>
+            {item.UserName?.charAt(0).toUpperCase()}
+          </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 }}>
-          {item.Tags?.slice(0, 4).map((tag, index) => (
+        <Text style={{ color: palette.text, fontSize: 19, fontWeight: '900', textAlign: 'center' }}>
+          {item.UserName}
+        </Text>
+        <Text style={{ color: palette.textMuted, fontSize: 13, fontWeight: '700', marginTop: 5, textAlign: 'center' }}>
+          {item.Category}
+        </Text>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 14 }}>
+          <Tag tone="success">{`${item.Rating?.toFixed(1) || '0.0'} match`}</Tag>
+          <Tag>{item.PriceRange || 'Sob consulta'}</Tag>
+        </View>
+
+        <Text style={{ color: palette.textMuted, marginTop: 14, fontSize: 13, lineHeight: 20, textAlign: 'center' }}>
+          {item.Location || 'Remoto e presencial'}
+        </Text>
+
+        <Text
+          numberOfLines={3}
+          style={{ color: palette.textMuted, marginTop: 14, fontSize: 14, lineHeight: 22, textAlign: 'center' }}
+        >
+          {item.Description || 'Profissional com perfil completo pronto para novas oportunidades.'}
+        </Text>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', marginTop: 16 }}>
+          {item.Tags?.slice(0, 3).map((tag, index) => (
             <Tag key={`${tag}-${index}`}>{tag}</Tag>
           ))}
         </View>
 
-        <View
-          style={{
-            marginTop: 20,
-            borderTopWidth: 1,
-            borderTopColor: '#eef1fb',
-            paddingTop: 16,
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <View>
-            <Text style={{ color: palette.textMuted, fontSize: 12, fontWeight: '700' }}>
-              Faixa estimada
-            </Text>
-            <Text style={{ color: palette.text, fontSize: 16, fontWeight: '800', marginTop: 4 }}>
-              {item.PriceRange || 'Sob consulta'}
-            </Text>
-          </View>
-          <PrimaryButton title="Ver perfil" onPress={() => navigation.navigate('Profile', { professional: item })} wide={false} />
+        <View style={{ alignSelf: 'stretch', marginTop: 18 }}>
+          <PrimaryButton title="Ver perfil" onPress={() => navigation.navigate('Profile', { professional: item })} />
         </View>
       </Panel>
     </TouchableOpacity>
@@ -173,7 +146,7 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <AppBackdrop>
+    <DashboardFrame active="home" navigation={navigation} signOut={signOut}>
       <FlatList
         data={filtered}
         key={`${layout.cardColumns}-${selectedCat}`}
@@ -183,7 +156,7 @@ export default function HomeScreen({ navigation }) {
         renderItem={({ item }) => (
           <View
             style={{
-              flex: layout.cardColumns > 1 ? 0.5 : 1,
+              flex: 1,
               paddingBottom: 18,
             }}
           >
@@ -192,7 +165,7 @@ export default function HomeScreen({ navigation }) {
         )}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 130,
+          paddingBottom: layout.isDesktop ? 40 : 130,
           alignSelf: 'center',
           width: '100%',
           maxWidth: layout.contentMaxWidth,
@@ -203,12 +176,10 @@ export default function HomeScreen({ navigation }) {
         }
         ListHeaderComponent={
           <ResponsiveShell maxWidth={layout.contentMaxWidth}>
-            <DesktopHeader
-              eyebrow="Vagas / Descoberta"
-              title={`Encontre a vaga ideal para ${user?.Name?.split(' ')[0] || 'voce'}`}
-              subtitle="Uma home mais editorial, com busca em destaque, filtros visiveis e cards amplos inspirados no layout enviado."
-              wide
-              rightAction={<PrimaryButton title="Sair" onPress={signOut} wide={false} />}
+            <SurfaceHeader
+              title={`Bem-vindo ao MatchJob${user?.Name ? `, ${user.Name.split(' ')[0]}` : ''}`}
+              subtitle="Encontre profissionais disponiveis, compare habilidades e inicie uma conversa."
+              action={!layout.isDesktop ? <PrimaryButton title="Sair" onPress={signOut} wide={false} /> : null}
             />
 
             <View
@@ -216,76 +187,136 @@ export default function HomeScreen({ navigation }) {
                 flexDirection: layout.isDesktop ? 'row' : 'column',
                 gap: 18,
                 marginTop: 20,
+                alignItems: 'stretch',
               }}
             >
-              <View style={{ flex: layout.isDesktop ? 1.5 : undefined }}>
-                <Panel>
-                  <Text style={{ color: palette.text, fontSize: 14, fontWeight: '800' }}>
-                    Buscar vagas, empresas ou habilidades
-                  </Text>
-                  <TextInput
-                    style={{
-                      marginTop: 14,
-                      borderWidth: 1,
-                      borderColor: '#e2e8ff',
-                      borderRadius: 18,
-                      backgroundColor: '#fbfbff',
-                      paddingHorizontal: 16,
-                      paddingVertical: 15,
-                      color: palette.text,
-                      fontSize: 15,
-                    }}
-                    placeholder="Buscar vagas, empresas ou tecnologias"
-                    placeholderTextColor="#98a0c9"
-                    value={search}
-                    onChangeText={setSearch}
-                  />
+              <View style={{ flex: layout.isDesktop ? 1.5 : undefined, gap: 18 }}>
+                <SearchPanel
+                  title="Buscar profissionais"
+                  subtitle="Filtre por nome, area, localizacao ou habilidades."
+                >
+                  <View style={{ flexDirection: layout.isDesktop ? 'row' : 'column', gap: 12 }}>
+                    <TextInput
+                      style={{
+                        flex: 1,
+                        borderWidth: 1,
+                        borderColor: '#e5e7eb',
+                        borderRadius: 8,
+                        backgroundColor: '#f9fafb',
+                        paddingHorizontal: 16,
+                        paddingVertical: 15,
+                        color: palette.text,
+                        fontSize: 15,
+                      }}
+                      placeholder="Servico, profissional ou habilidade"
+                      placeholderTextColor="#98a0c9"
+                      value={search}
+                      onChangeText={setSearch}
+                    />
+                  </View>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={{ gap: 10, paddingTop: 16 }}
                   >
                     {CATEGORIES.map((item) => {
-                      const active = selectedCat === item;
+                      const active = selectedCat === item.key;
                       return (
                         <TouchableOpacity
-                          key={item}
-                          onPress={() => setSelectedCat(item)}
+                          key={item.key}
+                          onPress={() => setSelectedCat(item.key)}
                           style={{
                             borderRadius: 999,
                             paddingHorizontal: 16,
                             paddingVertical: 11,
-                            backgroundColor: active ? palette.primary : '#eef2ff',
+                            backgroundColor: active ? palette.primary : item.bg,
                           }}
                         >
                           <Text
                             style={{
-                              color: active ? '#fff' : palette.text,
+                              color: active ? '#fff' : item.text,
                               fontSize: 12,
                               fontWeight: '800',
                             }}
                           >
-                            {item}
+                            {item.label}
                           </Text>
                         </TouchableOpacity>
                       );
                     })}
                   </ScrollView>
+                </SearchPanel>
+
+                <Panel>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 16,
+                      marginBottom: 18,
+                    }}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: palette.text, fontSize: 20, fontWeight: '900' }}>
+                        Profissionais disponiveis
+                      </Text>
+                      <Text style={{ color: palette.textMuted, marginTop: 6, fontSize: 14 }}>
+                        {filtered.length} resultados encontrados para a sua busca.
+                      </Text>
+                    </View>
+                    <Tag>{filtered.length} perfis</Tag>
+                  </View>
                 </Panel>
               </View>
 
-              <View style={{ flex: layout.isDesktop ? 1 : undefined, gap: 18 }}>
-                <Panel style={{ paddingVertical: 18 }}>
-                  <View style={{ flexDirection: 'row', gap: 14 }}>
-                    <StatCard label="Perfis" value={String(professionals.length)} compact />
-                    <StatCard label="Resultados" value={String(filtered.length)} compact />
-                    <StatCard
-                      label="Categoria"
-                      value={selectedCat === 'Todos' ? 'Todas' : selectedCat.slice(0, 6)}
-                      compact
-                    />
+              <View style={{ flex: layout.isDesktop ? 0.9 : undefined, gap: 18 }}>
+                <SidebarCard title="Resumo da busca">
+                  <View style={{ gap: 12 }}>
+                    <View
+                      style={{
+                        borderRadius: 12,
+                        backgroundColor: 'rgba(255,255,255,0.12)',
+                        padding: 16,
+                      }}
+                    >
+                      <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, fontWeight: '700' }}>
+                        Perfis carregados
+                      </Text>
+                      <Text style={{ color: '#ffffff', fontSize: 28, fontWeight: '900', marginTop: 6 }}>
+                        {professionals.length}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        borderRadius: 12,
+                        backgroundColor: 'rgba(255,255,255,0.12)',
+                        padding: 16,
+                      }}
+                    >
+                      <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, fontWeight: '700' }}>
+                        Filtro ativo
+                      </Text>
+                      <Text style={{ color: '#ffffff', fontSize: 18, fontWeight: '800', marginTop: 6 }}>
+                        {selectedCat === 'Todos' ? 'Todas as areas' : selectedCat}
+                      </Text>
+                    </View>
+                    <View
+                      style={{
+                        borderRadius: 12,
+                        backgroundColor: 'rgba(255,255,255,0.12)',
+                        padding: 16,
+                      }}
+                    >
+                      <Text style={{ color: 'rgba(255,255,255,0.72)', fontSize: 12, fontWeight: '700' }}>
+                        Busca digitada
+                      </Text>
+                      <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: '800', marginTop: 6 }}>
+                        {search.trim() || 'Sem termo'}
+                      </Text>
+                    </View>
                   </View>
-                </Panel>
+                </SidebarCard>
               </View>
             </View>
           </ResponsiveShell>
@@ -309,6 +340,6 @@ export default function HomeScreen({ navigation }) {
         ListFooterComponentStyle={{ paddingHorizontal: 20 }}
         ListEmptyComponentStyle={{ paddingHorizontal: 20 }}
       />
-    </AppBackdrop>
+    </DashboardFrame>
   );
 }

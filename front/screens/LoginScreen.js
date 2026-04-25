@@ -40,12 +40,12 @@ export default function LoginScreen({ navigation }) {
     <AuthLayout
       title="Bem-vindo de volta!"
       subtitle="Faca login para continuar e acompanhar vagas, conversas e perfis em um unico lugar."
-      heroTitle="Conectando talentos as melhores oportunidades"
-      heroSubtitle="Uma experiencia mais editorial, clara e elegante para quem busca contratar ou ser encontrado."
+      heroTitle="Conecte talentos as melhores oportunidades"
+      heroSubtitle="Entre para comparar perfis, acompanhar conversas e seguir seus contatos profissionais."
       heroPoints={[
-        'Fluxo limpo para login, cadastro e descoberta de vagas.',
-        'Cards mais fortes no desktop e leitura otimizada no mobile.',
-        'Visual inspirado nas referencias com azul profundo e superficies claras.',
+        'Descubra profissionais e oportunidades em poucos cliques.',
+        'Organize conversas e contatos em um unico painel.',
+        'Use a mesma experiencia no celular ou no desktop.',
       ]}
       compactHeroFooter={
         <View style={{ gap: 10 }}>

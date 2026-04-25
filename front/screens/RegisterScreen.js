@@ -50,13 +50,13 @@ export default function RegisterScreen({ navigation }) {
   return (
     <AuthLayout
       title="Criar conta"
-      subtitle="Monte seu perfil inicial em poucos passos e entre no ecossistema MatchJobs."
+      subtitle="Monte seu perfil inicial em poucos passos e entre no ecossistema MatchJob."
       heroTitle="Registro guiado para web e celular"
-      heroSubtitle="A interface segue a referencia com superfícies claras, blocos definidos e destaque visual no fluxo de onboarding."
+      heroSubtitle="Crie uma conta para buscar oportunidades, divulgar servicos ou iniciar conversas."
       heroPoints={[
         'Escolha o tipo de conta logo no inicio.',
-        'Campos amplos para toque facil no mobile.',
-        'Hierarquia forte para funcionar bem em desktop com mais respiro.',
+        'Complete os dados essenciais em poucos campos.',
+        'Continue a experiencia no celular ou no desktop.',
       ]}
       compactHeroFooter={
         <TouchableOpacity onPress={() => navigation.goBack()}>

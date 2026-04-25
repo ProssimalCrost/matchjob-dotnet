@@ -10,13 +10,13 @@ import {
 } from 'react-native';
 
 import {
-  AppBackdrop,
-  DesktopHeader,
+  DashboardFrame,
   EmptyState,
   Panel,
+  SearchPanel,
   ResponsiveShell,
-  StatCard,
   Tag,
+  SurfaceHeader,
   palette,
   useResponsiveLayout,
 } from '../components/MatchJobUI';
@@ -32,7 +32,7 @@ export default function ConversationsScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState('');
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const load = useCallback(async () => {
     try {
@@ -63,14 +63,14 @@ export default function ConversationsScreen({ navigation }) {
   }, [conversations, otherName, search]);
 
   return (
-    <AppBackdrop>
+    <DashboardFrame active="messages" navigation={navigation} signOut={signOut}>
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.Id.toString()}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingHorizontal: 20,
-          paddingBottom: 130,
+          paddingBottom: layout.isDesktop ? 40 : 130,
           alignSelf: 'center',
           width: '100%',
           maxWidth: layout.contentMaxWidth,
@@ -96,13 +96,13 @@ export default function ConversationsScreen({ navigation }) {
               }
               style={{ marginBottom: 16 }}
             >
-              <Panel>
+              <Panel style={{ padding: 20 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                   <View
                     style={{
                       width: 56,
                       height: 56,
-                      borderRadius: 20,
+                      borderRadius: 28,
                       alignItems: 'center',
                       justifyContent: 'center',
                       backgroundColor: avatarColor(name),
@@ -132,6 +132,9 @@ export default function ConversationsScreen({ navigation }) {
                         ? 'Voce iniciou esta conversa. Continue o contato pelo chat.'
                         : 'Uma empresa ou candidato entrou em contato com voce.'}
                     </Text>
+                    <Text style={{ color: palette.primaryStrong, marginTop: 10, fontSize: 13, fontWeight: '700' }}>
+                      Abrir conversa
+                    </Text>
                   </View>
                 </View>
               </Panel>
@@ -139,11 +142,10 @@ export default function ConversationsScreen({ navigation }) {
           );
         }}
         ListHeaderComponent={
-          <View>
-            <DesktopHeader
-              eyebrow="Mensagens"
+          <ResponsiveShell maxWidth={layout.contentMaxWidth}>
+            <SurfaceHeader
               title="Sua caixa de entrada"
-              subtitle="Conversa com leitura mais clara, blocos amplos e densidade mais equilibrada para celular e desktop."
+              subtitle="Acompanhe conversas abertas com candidatos, empresas e profissionais."
             />
 
             <View
@@ -154,17 +156,16 @@ export default function ConversationsScreen({ navigation }) {
               }}
             >
               <View style={{ flex: layout.isDesktop ? 1.3 : undefined }}>
-                <Panel>
-                  <Text style={{ color: palette.text, fontSize: 14, fontWeight: '800' }}>
-                    Buscar conversa
-                  </Text>
+                <SearchPanel
+                  title="Buscar conversa"
+                  subtitle="Encontre rapidamente o contato certo pelo nome."
+                >
                   <TextInput
                     style={{
-                      marginTop: 14,
                       borderWidth: 1,
-                      borderColor: '#e2e8ff',
-                      borderRadius: 18,
-                      backgroundColor: '#fbfbff',
+                      borderColor: '#e5e7eb',
+                      borderRadius: 8,
+                      backgroundColor: '#f9fafb',
                       paddingHorizontal: 16,
                       paddingVertical: 15,
                       color: palette.text,
@@ -175,19 +176,33 @@ export default function ConversationsScreen({ navigation }) {
                     value={search}
                     onChangeText={setSearch}
                   />
-                </Panel>
+                </SearchPanel>
               </View>
 
               <View style={{ flex: 1 }}>
                 <Panel style={{ paddingVertical: 18 }}>
                   <View style={{ flexDirection: 'row', gap: 14 }}>
-                    <StatCard label="Ativas" value={String(conversations.length)} compact />
-                    <StatCard label="Filtradas" value={String(filtered.length)} compact />
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: palette.textMuted, fontSize: 12, fontWeight: '700' }}>
+                        Conversas ativas
+                      </Text>
+                      <Text style={{ color: palette.text, fontSize: 26, fontWeight: '900', marginTop: 8 }}>
+                        {conversations.length}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ color: palette.textMuted, fontSize: 12, fontWeight: '700' }}>
+                        Conversas filtradas
+                      </Text>
+                      <Text style={{ color: palette.text, fontSize: 26, fontWeight: '900', marginTop: 8 }}>
+                        {filtered.length}
+                      </Text>
+                    </View>
                   </View>
                 </Panel>
               </View>
             </View>
-          </View>
+          </ResponsiveShell>
         }
         ListHeaderComponentStyle={{ paddingVertical: 28 }}
         ListEmptyComponent={
@@ -201,6 +216,6 @@ export default function ConversationsScreen({ navigation }) {
           )
         }
       />
-    </AppBackdrop>
+    </DashboardFrame>
   );
 }

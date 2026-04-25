@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native';
 
-import { AppBackdrop, Panel, ResponsiveShell, Tag, palette } from '../components/MatchJobUI';
+import { AppBackdrop, Panel, ResponsiveShell, SurfaceHeader, Tag, palette } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
 import { getMessages, sendMessage } from '../services/api';
 
@@ -83,16 +83,18 @@ export default function ChatScreen({ route, navigation }) {
       >
         <ResponsiveShell maxWidth={1120}>
           <View style={{ paddingTop: 24, paddingBottom: 120, flex: 1 }}>
-            <Panel style={{ marginBottom: 18 }}>
-              <Text style={{ color: palette.textMuted, fontSize: 12, fontWeight: '800' }}>CONVERSA ATIVA</Text>
-              <Text style={{ color: palette.text, fontSize: 26, fontWeight: '900', marginTop: 8 }}>
-                {otherName}
-              </Text>
-              <View style={{ marginTop: 14, flexDirection: 'row', gap: 10 }}>
-                <Tag>Online</Tag>
-                <Tag>{messages.length} mensagens</Tag>
-              </View>
-            </Panel>
+            <View style={{ marginBottom: 18 }}>
+              <SurfaceHeader
+                title={otherName}
+                subtitle="Conversa ativa"
+                action={
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <Tag>Online</Tag>
+                    <Tag>{messages.length} mensagens</Tag>
+                  </View>
+                }
+              />
+            </View>
 
             <Panel style={{ flex: 1, paddingBottom: 14 }}>
               {loading ? (
@@ -120,7 +122,7 @@ export default function ChatScreen({ route, navigation }) {
                             borderRadius: 24,
                             paddingHorizontal: 16,
                             paddingVertical: 14,
-                            backgroundColor: isMe ? palette.primary : '#f4f6ff',
+                            backgroundColor: isMe ? palette.primary : '#f3f4f6',
                           }}
                         >
                           {!isMe ? (
@@ -195,7 +197,7 @@ export default function ChatScreen({ route, navigation }) {
                   flex: 1,
                   minHeight: 54,
                   maxHeight: 120,
-                  borderRadius: 18,
+                  borderRadius: 8,
                   backgroundColor: '#f4f6ff',
                   paddingHorizontal: 16,
                   paddingVertical: 14,
@@ -213,7 +215,7 @@ export default function ChatScreen({ route, navigation }) {
               <TouchableOpacity
                 style={{
                   backgroundColor: !text.trim() || sending ? '#c7cff4' : palette.primary,
-                  borderRadius: 18,
+                  borderRadius: 8,
                   minHeight: 54,
                   paddingHorizontal: 18,
                   alignItems: 'center',

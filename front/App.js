@@ -26,7 +26,7 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
+        tabBarStyle: isDesktop ? { display: 'none' } : {
           height: isDesktop ? 82 : 74,
           backgroundColor: '#ffffff',
           borderTopWidth: 0,
@@ -35,13 +35,17 @@ function MainTabs() {
           paddingHorizontal: isDesktop ? 26 : 12,
           marginHorizontal: isDesktop ? 20 : 12,
           marginBottom: isDesktop ? 16 : 10,
-          borderRadius: 24,
+          borderRadius: 22,
           position: 'absolute',
           left: 0,
           right: 0,
+          shadowColor: '#160f4d',
+          shadowOpacity: 0.08,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: 8 },
         },
         tabBarActiveTintColor: palette.primaryStrong,
-        tabBarInactiveTintColor: '#8a92bf',
+        tabBarInactiveTintColor: '#8b91a8',
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: '700',
@@ -63,7 +67,7 @@ function MainTabs() {
                 borderRadius: 17,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: focused ? '#eef2ff' : '#eff2fb',
+                backgroundColor: focused ? '#efe7ff' : '#f3f4f6',
               }}
             >
               <Text style={{ color, fontSize: 12, fontWeight: '800' }}>JOB</Text>
@@ -83,7 +87,7 @@ function MainTabs() {
                 borderRadius: 17,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: focused ? '#eef2ff' : '#eff2fb',
+                backgroundColor: focused ? '#efe7ff' : '#f3f4f6',
               }}
             >
               <Text style={{ color, fontSize: 12, fontWeight: '800' }}>MSG</Text>
@@ -103,7 +107,7 @@ function AppStack() {
         headerTintColor: '#f8fafc',
         headerTitleStyle: { fontWeight: '800' },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: '#4e71e8' },
+        contentStyle: { backgroundColor: palette.surface },
       }}
     >
       <Stack.Screen name="Main" component={MainTabs} options={{ headerShown: false }} />
@@ -131,13 +135,15 @@ function RootNavigator() {
         <View className="flex-1 items-center justify-center px-6">
           <View className="mb-5 items-center">
             <BrandMark size={72} />
-            <Text className="mt-4 text-4xl font-black text-white">MatchJobs</Text>
-            <Text className="mt-2 text-sm font-semibold text-white/75">
+            <Text style={{ marginTop: 16, fontSize: 36, fontWeight: '900', color: palette.text }}>
+              MatchJob
+            </Text>
+            <Text style={{ marginTop: 8, fontSize: 14, fontWeight: '700', color: palette.textMuted }}>
               Preparando sua rede profissional
             </Text>
           </View>
-          <View className="rounded-[28px] bg-white/10 px-8 py-6">
-            <ActivityIndicator size="large" color="#ffffff" />
+          <View style={{ borderRadius: 12, backgroundColor: '#ffffff', paddingHorizontal: 32, paddingVertical: 24 }}>
+            <ActivityIndicator size="large" color={palette.primary} />
           </View>
         </View>
       </AppBackdrop>
@@ -151,7 +157,7 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <View className="flex-1 bg-[#4e71e8]">
+        <View style={{ flex: 1, backgroundColor: palette.surface }}>
           <RootNavigator />
         </View>
       </NavigationContainer>
