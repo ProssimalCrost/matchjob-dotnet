@@ -45,25 +45,34 @@ public class ProfessionalProfileService
     /// <summary>
     /// Lista profissionais com filtros opcionais: category, location, tag
     /// </summary>
-    public async Task<List<ProfessionalProfileResponse>> ListAsync(
-        string? category, string? location, string? tag)
-    {
-        var query = _db.ProfessionalProfiles.Include(p => p.User).AsQueryable();
+   public async Task<List<ProfessionalProfileResponse>> ListAsync(
+    string? category, string? location, string? tag)
+{
+    category = category?.Trim();
+    location = location?.Trim();
+    tag = tag?.Trim();
 
-        if (!string.IsNullOrEmpty(category))
-            query = query.Where(p => p.Category.ToLower() == category.ToLower());
+    var query = _db.ProfessionalProfiles
+        .AsNoTracking()
+        .Include(p => p.User)
+        .AsQueryable();
 
-        if (!string.IsNullOrEmpty(location))
-            query = query.Where(p => p.Location != null &&
-                                     p.Location.ToLower().Contains(location.ToLower()));
+    if (!string.IsNullOrWhiteSpace(category))
+        query = query.Where(p => EF.Functions.ILike(p.Category, category));
 
-        // Filtro por tag: busca dentro do array JSON
-        if (!string.IsNullOrEmpty(tag))
-            query = query.Where(p => p.Tags.Any(t => t.ToLower() == tag.ToLower()));
+    if (!string.IsNullOrWhiteSpace(location))
+        query = query.Where(p =>
+            p.Location != null &&
+            EF.Functions.ILike(p.Location, $"%{location}%"));
 
-        var list = await query.ToListAsync();
-        return list.Select(ToResponse).ToList();
-    }
+    if (!string.IsNullOrWhiteSpace(tag))
+        query = query.Where(p =>
+            p.Tags.Any(t => EF.Functions.ILike(t, tag)));
+
+    var list = await query.ToListAsync();
+
+    return list.Select(ToResponse).ToList();
+}
 
     /// <summary>
     /// Busca perfil pelo ID do perfil
