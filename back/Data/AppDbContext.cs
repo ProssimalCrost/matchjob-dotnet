@@ -1,4 +1,3 @@
-// Data/AppDbContext.cs
 using MatchJob.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,73 +11,125 @@ public class AppDbContext : DbContext
     public DbSet<ProfessionalProfile> ProfessionalProfiles => Set<ProfessionalProfile>();
     public DbSet<Conversation> Conversations => Set<Conversation>();
     public DbSet<Message> Messages => Set<Message>();
+    public DbSet<Category> Categories => Set<Category>();
+    public DbSet<Tag> Tags => Set<Tag>();
+    public DbSet<ProfessionalTag> ProfessionalTags => Set<ProfessionalTag>();
+    public DbSet<UserSettings> UserSettings => Set<UserSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // ── User ──────────────────────────────────────────────────
         modelBuilder.Entity<User>(e =>
         {
             e.ToTable("users");
-            e.HasIndex(u => u.Email).IsUnique();
-            e.Property(u => u.Role).HasConversion<string>(); // Salva como texto
+
+            e.HasIndex(u => u.Email)
+                .IsUnique();
+
+            e.Property(u => u.Role)
+                .HasConversion<string>();
         });
 
-        // ── ProfessionalProfile ───────────────────────────────────
         modelBuilder.Entity<ProfessionalProfile>(e =>
         {
             e.ToTable("professional_profiles");
 
-            // Tags como coluna JSON nativa do PostgreSQL
-            e.Property(p => p.Tags)
-            .HasColumnType("text")
-            .HasConversion(
-                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>()
-            )
-            .HasDefaultValue(new List<string>());
-
-            // Relação 1:1 com User
             e.HasOne(p => p.User)
-             .WithOne(u => u.ProfessionalProfile)
-             .HasForeignKey<ProfessionalProfile>(p => p.UserId)
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithOne(u => u.ProfessionalProfile)
+                .HasForeignKey<ProfessionalProfile>(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            e.HasIndex(p => p.UserId).IsUnique();
+            e.HasIndex(p => p.UserId)
+                .IsUnique();
+
+            e.HasOne(p => p.Category)
+                .WithMany(c => c.ProfessionalProfiles)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ── Conversation ──────────────────────────────────────────
         modelBuilder.Entity<Conversation>(e =>
         {
             e.ToTable("conversations");
 
-            // Um cliente não pode ter 2 conversas com o mesmo profissional
-            e.HasIndex(c => new { c.ClientId, c.ProfessionalId }).IsUnique();
+            e.HasIndex(c => new { c.ClientId, c.ProfessionalId })
+                .IsUnique();
 
             e.HasOne(c => c.Client)
-             .WithMany()
-             .HasForeignKey(c => c.ClientId)
-             .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(c => c.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             e.HasOne(c => c.Professional)
-             .WithMany()
-             .HasForeignKey(c => c.ProfessionalId)
-             .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(c => c.ProfessionalId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        // ── Message ───────────────────────────────────────────────
         modelBuilder.Entity<Message>(e =>
         {
             e.ToTable("messages");
 
             e.HasOne(m => m.Conversation)
-             .WithMany(c => c.Messages)
-             .HasForeignKey(m => m.ConversationId)
-             .OnDelete(DeleteBehavior.Cascade);
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             e.HasOne(m => m.Sender)
-             .WithMany()
-             .HasForeignKey(m => m.SenderId)
-             .OnDelete(DeleteBehavior.Restrict);
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Category>(e =>
+        {
+            e.ToTable("categories");
+
+            e.HasIndex(c => c.Name)
+                .IsUnique();
+
+            e.HasIndex(c => c.Slug)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<Tag>(e =>
+        {
+            e.ToTable("tags");
+
+            e.HasIndex(t => t.Name)
+                .IsUnique();
+
+            e.HasIndex(t => t.Slug)
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<ProfessionalTag>(e =>
+        {
+            e.ToTable("professional_tags");
+
+            e.HasKey(pt => new { pt.ProfessionalId, pt.TagId });
+
+            e.HasOne(pt => pt.Professional)
+                .WithMany(p => p.ProfessionalTags)
+                .HasForeignKey(pt => pt.ProfessionalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(pt => pt.Tag)
+                .WithMany(t => t.ProfessionalTags)
+                .HasForeignKey(pt => pt.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserSettings>(e =>
+        {
+            e.ToTable("user_settings");
+
+            e.HasIndex(s => s.UserId)
+                .IsUnique();
+
+            e.HasOne(s => s.User)
+                .WithOne(u => u.Settings)
+                .HasForeignKey<UserSettings>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

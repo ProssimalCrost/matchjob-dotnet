@@ -64,7 +64,7 @@ public class ProfessionalController : ControllerBase
     {
         try
         {
-            var result = await _service.CreateOrUpdateAsync(userId, req);
+            var result = await _service.CreateAsync(userId, req);
             return Ok(result);
         }
         catch (KeyNotFoundException ex)

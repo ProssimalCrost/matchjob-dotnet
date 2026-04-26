@@ -1,4 +1,3 @@
-// Services/ProfessionalProfileService.cs
 using MatchJob.Data;
 using MatchJob.DTOs;
 using MatchJob.Models;
@@ -10,94 +9,129 @@ public class ProfessionalProfileService
 {
     private readonly AppDbContext _db;
 
-    public ProfessionalProfileService(AppDbContext db) => _db = db;
-
-    /// <summary>
-    /// Cria ou atualiza o perfil de um profissional
-    /// </summary>
-    public async Task<ProfessionalProfileResponse> CreateOrUpdateAsync(long userId, ProfessionalProfileRequest req)
+    public ProfessionalProfileService(AppDbContext db)
     {
-        var user = await _db.Users.FindAsync(userId)
-            ?? throw new KeyNotFoundException($"Usuário não encontrado: {userId}");
-
-        // Busca perfil existente ou cria novo
-        var profile = await _db.ProfessionalProfiles.FirstOrDefaultAsync(p => p.UserId == userId);
-
-        if (profile is null)
-        {
-            profile = new ProfessionalProfile { UserId = userId };
-            _db.ProfessionalProfiles.Add(profile);
-        }
-
-        profile.Description = req.Description;
-        profile.Category    = req.Category;
-        profile.Tags        = req.Tags ?? [];
-        profile.Location    = req.Location;
-        profile.PriceRange  = req.PriceRange;
-
-        await _db.SaveChangesAsync();
-
-        // Recarrega com o User para o DTO
-        await _db.Entry(profile).Reference(p => p.User).LoadAsync();
-        return ToResponse(profile);
+        _db = db;
     }
 
-    /// <summary>
-    /// Lista profissionais com filtros opcionais: category, location, tag
-    /// </summary>
-   public async Task<List<ProfessionalProfileResponse>> ListAsync(
-    string? category, string? location, string? tag)
+    public async Task<ProfessionalProfileResponse> CreateAsync(
+        long userId,
+    ProfessionalProfileRequest request)
 {
-    category = category?.Trim();
-    location = location?.Trim();
-    tag = tag?.Trim();
-
-    var query = _db.ProfessionalProfiles
-        .AsNoTracking()
+    var profile = await _db.ProfessionalProfiles
         .Include(p => p.User)
-        .AsQueryable();
+        .Include(p => p.Category)
+        .FirstOrDefaultAsync(p => p.UserId == userId);
 
-    if (!string.IsNullOrWhiteSpace(category))
-        query = query.Where(p => EF.Functions.ILike(p.Category, category));
+    var category = await GetOrCreateCategoryAsync(request.Category);
 
-    if (!string.IsNullOrWhiteSpace(location))
-        query = query.Where(p =>
-            p.Location != null &&
-            EF.Functions.ILike(p.Location, $"%{location}%"));
+    if (profile is null)
+    {
+        profile = new ProfessionalProfile
+        {
+            UserId = userId,
+            Description = request.Description,
+            Category = category,
+            Location = request.Location,
+            PriceRange = request.PriceRange,
+            Rating = 0
+        };
 
-    if (!string.IsNullOrWhiteSpace(tag))
-        query = query.Where(p =>
-            p.Tags.Any(t => EF.Functions.ILike(t, tag)));
+        _db.ProfessionalProfiles.Add(profile);
+    }
+    else
+    {
+        profile.Description = request.Description;
+        profile.Category = category;
+        profile.Location = request.Location;
+        profile.PriceRange = request.PriceRange;
+    }
 
-    var list = await query.ToListAsync();
+    await _db.SaveChangesAsync();
 
-    return list.Select(ToResponse).ToList();
+    profile = await _db.ProfessionalProfiles
+        .Include(p => p.User)
+        .Include(p => p.Category)
+        .FirstAsync(p => p.Id == profile.Id);
+
+    return ToResponse(profile);
 }
 
-    /// <summary>
-    /// Busca perfil pelo ID do perfil
-    /// </summary>
-    public async Task<ProfessionalProfileResponse> GetByIdAsync(long id)
+    public async Task<List<ProfessionalProfileResponse>> ListAsync(
+        string? category,
+        string? location,
+        string? tag)
+    {
+        var query = _db.ProfessionalProfiles
+            .Include(p => p.User)
+            .Include(p => p.Category)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(category))
+        {
+            query = query.Where(p =>
+                p.Category.Name.ToLower() == category.ToLower());
+        }
+
+        if (!string.IsNullOrEmpty(location))
+        {
+            query = query.Where(p =>
+                p.Location != null &&
+                p.Location.ToLower().Contains(location.ToLower()));
+        }
+
+        // Tags removidas temporariamente porque ProfessionalProfile não possui mais Tags
+
+        var list = await query.ToListAsync();
+
+        return list.Select(ToResponse).ToList();
+    }
+
+    public async Task<ProfessionalProfileResponse?> GetByIdAsync(long id)
     {
         var profile = await _db.ProfessionalProfiles
             .Include(p => p.User)
-            .FirstOrDefaultAsync(p => p.Id == id)
-            ?? throw new KeyNotFoundException($"Perfil não encontrado: {id}");
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
-        return ToResponse(profile);
+        return profile is null ? null : ToResponse(profile);
     }
 
-    private static ProfessionalProfileResponse ToResponse(ProfessionalProfile p) =>
-        new(
-            Id:          p.Id,
-            UserId:      p.UserId,
-            UserName:    p.User.Name,
-            UserEmail:   p.User.Email,
-            Description: p.Description,
-            Category:    p.Category,
-            Tags:        p.Tags,
-            Location:    p.Location,
-            PriceRange:  p.PriceRange,
-            Rating:      p.Rating
-        );
+    private async Task<Category> GetOrCreateCategoryAsync(string categoryName)
+    {
+        var slug = categoryName
+            .Trim()
+            .ToLower()
+            .Replace(" ", "-");
+
+        var category = await _db.Categories
+            .FirstOrDefaultAsync(c => c.Slug == slug);
+
+        if (category is not null)
+            return category;
+
+        category = new Category
+        {
+            Name = categoryName,
+            Slug = slug
+        };
+
+        _db.Categories.Add(category);
+        await _db.SaveChangesAsync();
+
+        return category;
+    }
+
+    private static ProfessionalProfileResponse ToResponse(ProfessionalProfile profile)
+{
+    return new ProfessionalProfileResponse(
+        profile.Id,
+        profile.User.Name,
+        profile.Description ?? "",
+        profile.Category.Name,
+        profile.Location,
+        profile.PriceRange,
+        profile.Rating
+    );
+}
 }
