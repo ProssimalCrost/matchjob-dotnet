@@ -10,7 +10,7 @@ import {
   SecondaryButton,
 } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { authLogin } from '../services/api';
+import { authLogin, getApiErrorMessage } from '../services/api';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -29,8 +29,7 @@ export default function LoginScreen({ navigation }) {
       const res = await authLogin(email.trim(), password);
       await signIn(res.data);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Email ou senha incorretos.';
-      Alert.alert('Erro ao entrar', msg);
+      Alert.alert('Erro ao entrar', getApiErrorMessage(err, 'Email ou senha incorretos.'));
     } finally {
       setLoading(false);
     }

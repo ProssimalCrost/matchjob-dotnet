@@ -36,8 +36,8 @@ public class ConversationController : ControllerBase
     /// <summary>
     /// GET /conversations/user/{userId}
     /// </summary>
-    [HttpGet("user/{userId:long}")]
-    public async Task<IActionResult> GetByUser(long userId)
+    [HttpGet("user/{userId:guid}")]
+    public async Task<IActionResult> GetByUser(Guid userId)
     {
         var result = await _service.GetByUserAsync(userId);
         return Ok(result);

@@ -25,7 +25,7 @@ import {
   useResponsiveLayout,
 } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { listProfessionals } from '../services/api';
+import { getApiErrorMessage, listProfessionals } from '../services/api';
 
 const CATEGORIES = [
   { key: 'Todos', label: 'Todos', bg: '#f3f4f6', text: '#374151' },
@@ -115,8 +115,8 @@ export default function HomeScreen({ navigation }) {
       const params = cat && cat !== 'Todos' ? { category: cat } : {};
       const res = await listProfessionals(params);
       setProfessionals(res.data);
-    } catch {
-      Alert.alert('Erro', 'Nao foi possivel carregar os profissionais.');
+    } catch (err) {
+      Alert.alert('Erro', getApiErrorMessage(err, 'Nao foi possivel carregar os profissionais.'));
     } finally {
       setLoading(false);
       setRefreshing(false);

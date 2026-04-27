@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Tag> Tags => Set<Tag>();
     public DbSet<ProfessionalTag> ProfessionalTags => Set<ProfessionalTag>();
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
+    public DbSet<Review> Reviews => Set<Review>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -131,5 +132,21 @@ public class AppDbContext : DbContext
                 .HasForeignKey<UserSettings>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.Reviewer)
+            .WithMany()
+            .HasForeignKey(r => r.ReviewerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Review>()
+            .HasOne(r => r.ProfessionalProfile)
+            .WithMany()
+            .HasForeignKey(r => r.ProfessionalProfileId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Review>()
+            .HasIndex(r => new { r.ReviewerId, r.ProfessionalProfileId })
+            .IsUnique();
     }
 }

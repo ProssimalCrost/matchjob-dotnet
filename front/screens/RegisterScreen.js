@@ -9,7 +9,7 @@ import {
   SegmentedOptions,
 } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { authRegister } from '../services/api';
+import { authRegister, getApiErrorMessage } from '../services/api';
 
 const ROLES = [
   { key: 'CLIENT', title: 'Candidato', desc: 'Quero explorar vagas, conversar e acompanhar oportunidades.' },
@@ -40,8 +40,7 @@ export default function RegisterScreen({ navigation }) {
       const res = await authRegister(name.trim(), email.trim(), password, role);
       await signIn(res.data);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Erro ao cadastrar. Tente novamente.';
-      Alert.alert('Erro no cadastro', msg);
+      Alert.alert('Erro no cadastro', getApiErrorMessage(err, 'Erro ao cadastrar. Tente novamente.'));
     } finally {
       setLoading(false);
     }

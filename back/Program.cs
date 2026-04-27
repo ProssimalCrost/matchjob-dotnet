@@ -136,6 +136,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddScoped<ReviewService>();
 // ═══════════════════════════════════════════════════════════
 // BUILD
 // ═══════════════════════════════════════════════════════════

@@ -48,7 +48,7 @@ public class MessageService
     /// <summary>
     /// Lista todas as mensagens de uma conversa em ordem cronológica
     /// </summary>
-    public async Task<List<MessageResponse>> GetByConversationAsync(long conversationId)
+    public async Task<List<MessageResponse>> GetByConversationAsync(Guid conversationId)
     {
         var messages = await _db.Messages
             .Include(m => m.Sender)

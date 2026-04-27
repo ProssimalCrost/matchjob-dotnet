@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MatchJob.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426192912_AddCategories")]
-    partial class AddCategories
+    [Migration("20260427190717_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -52,17 +52,15 @@ namespace MatchJob.Migrations
 
             modelBuilder.Entity("MatchJob.Models.Conversation", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("uuid");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
 
-                    b.Property<long>("ClientId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("ProfessionalId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ProfessionalId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -76,24 +74,22 @@ namespace MatchJob.Migrations
 
             modelBuilder.Entity("MatchJob.Models.Message", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long>("ConversationId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<long>("SenderId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -106,11 +102,9 @@ namespace MatchJob.Migrations
 
             modelBuilder.Entity("MatchJob.Models.ProfessionalProfile", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Available")
                         .HasColumnType("boolean");
@@ -142,8 +136,8 @@ namespace MatchJob.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("text");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -157,8 +151,8 @@ namespace MatchJob.Migrations
 
             modelBuilder.Entity("MatchJob.Models.ProfessionalTag", b =>
                 {
-                    b.Property<long>("ProfessionalId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ProfessionalId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("TagId")
                         .HasColumnType("uuid");
@@ -168,6 +162,37 @@ namespace MatchJob.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("professional_tags", (string)null);
+                });
+
+            modelBuilder.Entity("MatchJob.Models.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProfessionalProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ReviewerId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfessionalProfileId");
+
+                    b.HasIndex("ReviewerId", "ProfessionalProfileId")
+                        .IsUnique();
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("MatchJob.Models.Tag", b =>
@@ -197,11 +222,9 @@ namespace MatchJob.Migrations
 
             modelBuilder.Entity("MatchJob.Models.User", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -239,8 +262,8 @@ namespace MatchJob.Migrations
                     b.Property<bool>("NotificationsEnabled")
                         .HasColumnType("boolean");
 
-                    b.Property<long>("UserId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -324,6 +347,25 @@ namespace MatchJob.Migrations
                     b.Navigation("Professional");
 
                     b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("MatchJob.Models.Review", b =>
+                {
+                    b.HasOne("MatchJob.Models.ProfessionalProfile", "ProfessionalProfile")
+                        .WithMany()
+                        .HasForeignKey("ProfessionalProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MatchJob.Models.User", "Reviewer")
+                        .WithMany()
+                        .HasForeignKey("ReviewerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProfessionalProfile");
+
+                    b.Navigation("Reviewer");
                 });
 
             modelBuilder.Entity("MatchJob.Models.UserSettings", b =>

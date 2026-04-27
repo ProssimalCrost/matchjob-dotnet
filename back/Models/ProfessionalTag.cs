@@ -2,7 +2,7 @@ namespace MatchJob.Models;
 
 public class ProfessionalTag
 {
-    public long ProfessionalId { get; set; }
+    public Guid ProfessionalId { get; set; }
     public ProfessionalProfile Professional { get; set; } = null!;
 
     public Guid TagId { get; set; }

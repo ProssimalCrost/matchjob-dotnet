@@ -14,7 +14,7 @@ import {
   useResponsiveLayout,
 } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { createConversation } from '../services/api';
+import { createConversation, getApiErrorMessage } from '../services/api';
 
 const COLORS = ['#4f46e5', '#2563eb', '#7c3aed', '#f97316', '#0ea5e9', '#14b8a6'];
 const avatarColor = (name = '') => COLORS[name.charCodeAt(0) % COLORS.length];
@@ -44,8 +44,8 @@ export default function ProfileScreen({ navigation, route }) {
         conversationId: conv.Id,
         otherName: p.UserName,
       });
-    } catch {
-      Alert.alert('Erro', 'Nao foi possivel iniciar a conversa.');
+    } catch (err) {
+      Alert.alert('Erro', getApiErrorMessage(err, 'Nao foi possivel iniciar a conversa.'));
     } finally {
       setLoading(false);
     }

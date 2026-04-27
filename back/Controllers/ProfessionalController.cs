@@ -37,9 +37,9 @@ public class ProfessionalController : ControllerBase
     /// <summary>
     /// GET /professionals/{id}
     /// </summary>
-    [HttpGet("{id:long}")]
+    [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<IActionResult> GetById(long id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         try
         {
@@ -53,19 +53,19 @@ public class ProfessionalController : ControllerBase
     }
 
     /// <summary>
-    /// POST /professionals?userId=1
+    /// POST /professionals?userId={guid}
     /// Body: { "description": "...", "category": "Dev", "tags": [...], ... }
     /// </summary>
     [HttpPost]
     [Authorize]
     public async Task<IActionResult> Create(
-        [FromQuery] long userId,
+        [FromQuery] Guid userId,
         [FromBody] ProfessionalProfileRequest req)
     {
         try
         {
-            var result = await _service.CreateAsync(userId, req);
-            return Ok(result);
+             await _service.CreateAsync(userId, req);
+            return Ok("Perfil profissional criado com sucesso");
         }
         catch (KeyNotFoundException ex)
         {

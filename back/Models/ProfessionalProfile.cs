@@ -2,9 +2,9 @@ namespace MatchJob.Models;
 
 public class ProfessionalProfile
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-    public long UserId { get; set; }
+    public Guid UserId { get; set; }
     public User User { get; set; } = null!;
 
     public string? Description { get; set; }

@@ -9,44 +9,31 @@ public record ProfessionalProfileRequest(
     string? PriceRange
 );
 
-public record ProfessionalProfileResponse(
-    long Id,
-    long UserId,
-    string UserName,
-    string UserEmail,
-    string? Description,
-    string Category,
-    List<string> Tags,
-    string? Location,
-    string? PriceRange,
-    double Rating
-);
-
 // DTOs/ConversationDtos.cs
 public record ConversationRequest(
-    long ClientId,
-    long ProfessionalId
+    Guid ClientId,
+    Guid ProfessionalId
 );
 
 public record ConversationResponse(
-    long Id,
-    long ClientId,
+    Guid Id,
+    Guid ClientId,
     string ClientName,
-    long ProfessionalId,
+    Guid ProfessionalId,
     string ProfessionalName
 );
 
 // DTOs/MessageDtos.cs
 public record MessageRequest(
-    long ConversationId,
-    long SenderId,
+    Guid ConversationId,
+    Guid SenderId,
     string Content
 );
 
 public record MessageResponse(
-    long Id,
-    long ConversationId,
-    long SenderId,
+    Guid Id,
+    Guid ConversationId,
+    Guid SenderId,
     string SenderName,
     string Content,
     DateTime CreatedAt

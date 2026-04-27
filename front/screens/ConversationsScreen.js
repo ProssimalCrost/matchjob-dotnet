@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   RefreshControl,
   Text,
@@ -21,7 +22,7 @@ import {
   useResponsiveLayout,
 } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { getConversations } from '../services/api';
+import { getApiErrorMessage, getConversations } from '../services/api';
 
 const COLORS = ['#4f46e5', '#2563eb', '#7c3aed', '#f97316', '#0ea5e9', '#14b8a6'];
 const avatarColor = (name = '') => COLORS[name.charCodeAt(0) % COLORS.length];
@@ -38,6 +39,8 @@ export default function ConversationsScreen({ navigation }) {
     try {
       const res = await getConversations(user.UserId);
       setConversations(res.data);
+    } catch (err) {
+      Alert.alert('Erro', getApiErrorMessage(err, 'Nao foi possivel carregar as conversas.'));
     } finally {
       setLoading(false);
       setRefreshing(false);

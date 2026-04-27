@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -12,7 +13,7 @@ import {
 
 import { AppBackdrop, Panel, ResponsiveShell, SurfaceHeader, Tag, palette } from '../components/MatchJobUI';
 import { useAuth } from '../services/AuthContext';
-import { getMessages, sendMessage } from '../services/api';
+import { getApiErrorMessage, getMessages, sendMessage } from '../services/api';
 
 export default function ChatScreen({ route, navigation }) {
   const { conversationId, otherName } = route.params;
@@ -29,17 +30,21 @@ export default function ChatScreen({ route, navigation }) {
     navigation.setOptions({ title: otherName });
   }, [navigation, otherName]);
 
-  const loadMessages = useCallback(async () => {
+  const loadMessages = useCallback(async (showError = false) => {
     try {
       const res = await getMessages(conversationId);
       setMessages(res.data);
+    } catch (err) {
+      if (showError) {
+        Alert.alert('Erro', getApiErrorMessage(err, 'Nao foi possivel carregar as mensagens.'));
+      }
     } finally {
       setLoading(false);
     }
   }, [conversationId]);
 
   useEffect(() => {
-    loadMessages();
+    loadMessages(true);
     pollRef.current = setInterval(loadMessages, 3000);
     return () => clearInterval(pollRef.current);
   }, [loadMessages]);
@@ -57,7 +62,9 @@ export default function ChatScreen({ route, navigation }) {
     setSending(true);
     try {
       await sendMessage(conversationId, user.UserId, content);
-      await loadMessages();
+      await loadMessages(true);
+    } catch (err) {
+      Alert.alert('Erro', getApiErrorMessage(err, 'Nao foi possivel enviar a mensagem.'));
     } finally {
       setSending(false);
     }

@@ -6,7 +6,12 @@
   },
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:5000", "type": "string" },
-    { "key": "token",   "value": "COLE_O_TOKEN_AQUI",    "type": "string" }
+    { "key": "token",   "value": "COLE_O_TOKEN_AQUI",    "type": "string" },
+    { "key": "userId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "clientId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "professionalId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "professionalProfileId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" },
+    { "key": "conversationId", "value": "00000000-0000-0000-0000-000000000000", "type": "string" }
   ],
   "item": [
     {
@@ -111,11 +116,11 @@
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/professionals/1" }
+            "url": { "raw": "{{baseUrl}}/professionals/{{professionalProfileId}}" }
           }
         },
         {
-          "name": "POST — Criar perfil (userId=2)",
+          "name": "POST — Criar perfil",
           "request": {
             "method": "POST",
             "header": [
@@ -123,8 +128,8 @@
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/professionals?userId=2",
-              "query": [{ "key": "userId", "value": "2" }]
+              "raw": "{{baseUrl}}/professionals?userId={{userId}}",
+              "query": [{ "key": "userId", "value": "{{userId}}" }]
             },
             "body": {
               "mode": "raw",
@@ -148,16 +153,16 @@
             "url": { "raw": "{{baseUrl}}/conversations" },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ClientId\": 3,\n  \"ProfessionalId\": 1\n}"
+              "raw": "{\n  \"ClientId\": \"{{clientId}}\",\n  \"ProfessionalId\": \"{{professionalId}}\"\n}"
             }
           }
         },
         {
-          "name": "GET — Conversas do usuário (id=3)",
+          "name": "GET — Conversas do usuário",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/conversations/user/3" }
+            "url": { "raw": "{{baseUrl}}/conversations/user/{{userId}}" }
           }
         }
       ]
@@ -176,7 +181,7 @@
             "url": { "raw": "{{baseUrl}}/messages" },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ConversationId\": 1,\n  \"SenderId\": 3,\n  \"Content\": \"Olá! Vi seu perfil e gostaria de contratar seus serviços.\"\n}"
+              "raw": "{\n  \"ConversationId\": \"{{conversationId}}\",\n  \"SenderId\": \"{{clientId}}\",\n  \"Content\": \"Olá! Vi seu perfil e gostaria de contratar seus serviços.\"\n}"
             }
           }
         },
@@ -191,16 +196,16 @@
             "url": { "raw": "{{baseUrl}}/messages" },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"ConversationId\": 1,\n  \"SenderId\": 1,\n  \"Content\": \"Olá! Claro, fico feliz em ajudar. Me conte mais sobre o projeto!\"\n}"
+              "raw": "{\n  \"ConversationId\": \"{{conversationId}}\",\n  \"SenderId\": \"{{professionalId}}\",\n  \"Content\": \"Olá! Claro, fico feliz em ajudar. Me conte mais sobre o projeto!\"\n}"
             }
           }
         },
         {
-          "name": "GET — Mensagens da conversa (id=1)",
+          "name": "GET — Mensagens da conversa",
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
-            "url": { "raw": "{{baseUrl}}/messages/1" }
+            "url": { "raw": "{{baseUrl}}/messages/{{conversationId}}" }
           }
         }
       ]

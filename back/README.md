@@ -148,7 +148,7 @@ cp matchjob-app-api.js ../matchjob-app/services/api.js
 | GET    | /professionals?location=X     | Filtra por cidade     |
 | GET    | /professionals?tag=X          | Filtra por habilidade |
 | GET    | /professionals/{id}           | Busca por ID          |
-| POST   | /professionals?userId=1       | Cria/atualiza perfil  |
+| POST   | /professionals?userId={guid}  | Cria/atualiza perfil  |
 
 ### Conversas e Mensagens (JWT obrigatório)
 

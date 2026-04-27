@@ -15,47 +15,51 @@ public class ProfessionalProfileService
     }
 
     public async Task<ProfessionalProfileResponse> CreateAsync(
-        long userId,
-    ProfessionalProfileRequest request)
-{
-    var profile = await _db.ProfessionalProfiles
-        .Include(p => p.User)
-        .Include(p => p.Category)
-        .FirstOrDefaultAsync(p => p.UserId == userId);
-
-    var category = await GetOrCreateCategoryAsync(request.Category);
-
-    if (profile is null)
+        Guid userId,
+        ProfessionalProfileRequest request)
     {
-        profile = new ProfessionalProfile
+        var profile = await _db.ProfessionalProfiles
+            .Include(p => p.User)
+            .Include(p => p.Category)
+            .Include(p => p.ProfessionalTags)
+                .ThenInclude(pt => pt.Tag)
+            .FirstOrDefaultAsync(p => p.UserId == userId);
+
+        var category = await GetOrCreateCategoryAsync(request.Category);
+
+        if (profile is null)
         {
-            UserId = userId,
-            Description = request.Description,
-            Category = category,
-            Location = request.Location,
-            PriceRange = request.PriceRange,
-            Rating = 0
-        };
+            profile = new ProfessionalProfile
+            {
+                UserId = userId,
+                Description = request.Description,
+                Category = category,
+                Location = request.Location,
+                PriceRange = request.PriceRange,
+                Rating = 0
+            };
 
-        _db.ProfessionalProfiles.Add(profile);
+            _db.ProfessionalProfiles.Add(profile);
+        }
+        else
+        {
+            profile.Description = request.Description;
+            profile.Category = category;
+            profile.Location = request.Location;
+            profile.PriceRange = request.PriceRange;
+        }
+
+        await _db.SaveChangesAsync();
+
+        profile = await _db.ProfessionalProfiles
+            .Include(p => p.User)
+            .Include(p => p.Category)
+            .Include(p => p.ProfessionalTags)
+                .ThenInclude(pt => pt.Tag)
+            .FirstAsync(p => p.Id == profile.Id);
+
+        return ToResponse(profile);
     }
-    else
-    {
-        profile.Description = request.Description;
-        profile.Category = category;
-        profile.Location = request.Location;
-        profile.PriceRange = request.PriceRange;
-    }
-
-    await _db.SaveChangesAsync();
-
-    profile = await _db.ProfessionalProfiles
-        .Include(p => p.User)
-        .Include(p => p.Category)
-        .FirstAsync(p => p.Id == profile.Id);
-
-    return ToResponse(profile);
-}
 
     public async Task<List<ProfessionalProfileResponse>> ListAsync(
         string? category,
@@ -65,6 +69,8 @@ public class ProfessionalProfileService
         var query = _db.ProfessionalProfiles
             .Include(p => p.User)
             .Include(p => p.Category)
+            .Include(p => p.ProfessionalTags)
+                .ThenInclude(pt => pt.Tag)
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(category))
@@ -80,18 +86,25 @@ public class ProfessionalProfileService
                 p.Location.ToLower().Contains(location.ToLower()));
         }
 
-        // Tags removidas temporariamente porque ProfessionalProfile não possui mais Tags
+        if (!string.IsNullOrEmpty(tag))
+        {
+            query = query.Where(p =>
+                p.ProfessionalTags.Any(pt =>
+                    pt.Tag.Name.ToLower() == tag.ToLower()));
+        }
 
         var list = await query.ToListAsync();
 
         return list.Select(ToResponse).ToList();
     }
 
-    public async Task<ProfessionalProfileResponse?> GetByIdAsync(long id)
+    public async Task<ProfessionalProfileResponse?> GetByIdAsync(Guid id)
     {
         var profile = await _db.ProfessionalProfiles
             .Include(p => p.User)
             .Include(p => p.Category)
+            .Include(p => p.ProfessionalTags)
+                .ThenInclude(pt => pt.Tag)
             .FirstOrDefaultAsync(p => p.Id == id);
 
         return profile is null ? null : ToResponse(profile);
@@ -123,15 +136,18 @@ public class ProfessionalProfileService
     }
 
     private static ProfessionalProfileResponse ToResponse(ProfessionalProfile profile)
-{
-    return new ProfessionalProfileResponse(
-        profile.Id,
-        profile.User.Name,
-        profile.Description ?? "",
-        profile.Category.Name,
-        profile.Location,
-        profile.PriceRange,
-        profile.Rating
-    );
-}
+    {
+        return new ProfessionalProfileResponse(
+            profile.Id,
+            profile.UserId,
+            profile.User.Name,
+            profile.User.Email,
+            profile.Description ?? "",
+            profile.Category.Name,
+            profile.ProfessionalTags.Select(pt => pt.Tag.Name).ToList(),
+            profile.Location,
+            profile.PriceRange,
+            profile.Rating
+        );
+    }
 }

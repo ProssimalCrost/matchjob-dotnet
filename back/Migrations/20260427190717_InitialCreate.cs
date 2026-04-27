@@ -1,13 +1,12 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace MatchJob.Migrations
 {
     /// <inheritdoc />
-    public partial class AddCategories : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -42,8 +41,7 @@ namespace MatchJob.Migrations
                 name: "users",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
                     Password = table.Column<string>(type: "text", nullable: false),
@@ -58,10 +56,9 @@ namespace MatchJob.Migrations
                 name: "conversations",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ClientId = table.Column<long>(type: "bigint", nullable: false),
-                    ProfessionalId = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ClientId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfessionalId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -84,9 +81,8 @@ namespace MatchJob.Migrations
                 name: "professional_profiles",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: true),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
                     Title = table.Column<string>(type: "text", nullable: true),
@@ -120,7 +116,7 @@ namespace MatchJob.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserId = table.Column<long>(type: "bigint", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     NotificationsEnabled = table.Column<bool>(type: "boolean", nullable: false),
                     DarkMode = table.Column<bool>(type: "boolean", nullable: false)
                 },
@@ -139,10 +135,9 @@ namespace MatchJob.Migrations
                 name: "messages",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ConversationId = table.Column<long>(type: "bigint", nullable: false),
-                    SenderId = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ConversationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SenderId = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
@@ -167,7 +162,7 @@ namespace MatchJob.Migrations
                 name: "professional_tags",
                 columns: table => new
                 {
-                    ProfessionalId = table.Column<long>(type: "bigint", nullable: false),
+                    ProfessionalId = table.Column<Guid>(type: "uuid", nullable: false),
                     TagId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
@@ -185,6 +180,34 @@ namespace MatchJob.Migrations
                         principalTable: "tags",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Reviews",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    ReviewerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ProfessionalProfileId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Reviews", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Reviews_professional_profiles_ProfessionalProfileId",
+                        column: x => x.ProfessionalProfileId,
+                        principalTable: "professional_profiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Reviews_users_ReviewerId",
+                        column: x => x.ReviewerId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -237,6 +260,17 @@ namespace MatchJob.Migrations
                 column: "TagId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ProfessionalProfileId",
+                table: "Reviews",
+                column: "ProfessionalProfileId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Reviews_ReviewerId_ProfessionalProfileId",
+                table: "Reviews",
+                columns: new[] { "ReviewerId", "ProfessionalProfileId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_tags_Name",
                 table: "tags",
                 column: "Name",
@@ -271,16 +305,19 @@ namespace MatchJob.Migrations
                 name: "professional_tags");
 
             migrationBuilder.DropTable(
+                name: "Reviews");
+
+            migrationBuilder.DropTable(
                 name: "user_settings");
 
             migrationBuilder.DropTable(
                 name: "conversations");
 
             migrationBuilder.DropTable(
-                name: "professional_profiles");
+                name: "tags");
 
             migrationBuilder.DropTable(
-                name: "tags");
+                name: "professional_profiles");
 
             migrationBuilder.DropTable(
                 name: "categories");

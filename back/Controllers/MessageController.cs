@@ -36,8 +36,8 @@ public class MessageController : ControllerBase
     /// <summary>
     /// GET /messages/{conversationId}
     /// </summary>
-    [HttpGet("{conversationId:long}")]
-    public async Task<IActionResult> GetByConversation(long conversationId)
+    [HttpGet("{conversationId:guid}")]
+    public async Task<IActionResult> GetByConversation(Guid conversationId)
     {
         var result = await _service.GetByConversationAsync(conversationId);
         return Ok(result);

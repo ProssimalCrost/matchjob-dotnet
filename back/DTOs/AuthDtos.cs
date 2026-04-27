@@ -17,7 +17,7 @@ public record LoginRequest(
 
 public record AuthResponse(
     string Token,
-    long UserId,
+    Guid UserId,
     string Name,
     string Email,
     Role Role

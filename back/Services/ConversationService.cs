@@ -53,7 +53,7 @@ public class ConversationService
     /// <summary>
     /// Lista todas as conversas de um usuário (como cliente ou profissional)
     /// </summary>
-    public async Task<List<ConversationResponse>> GetByUserAsync(long userId)
+    public async Task<List<ConversationResponse>> GetByUserAsync(Guid userId)
     {
         var list = await _db.Conversations
             .Include(c => c.Client)

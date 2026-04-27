@@ -3,12 +3,12 @@ namespace MatchJob.Models;
 
 public class Conversation
 {
-    public long Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
 
-    public long ClientId { get; set; }
+    public Guid ClientId { get; set; }
     public User Client { get; set; } = null!;
 
-    public long ProfessionalId { get; set; }
+    public Guid ProfessionalId { get; set; }
     public User Professional { get; set; } = null!;
 
     // Navegação para mensagens

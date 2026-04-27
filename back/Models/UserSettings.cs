@@ -2,8 +2,8 @@ namespace MatchJob.Models;
 
 public class UserSettings
 {
-    public Guid Id { get; set; }
-    public long UserId { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid UserId { get; set; }
 
     public bool NotificationsEnabled { get; set; }
     public bool DarkMode { get; set; }
