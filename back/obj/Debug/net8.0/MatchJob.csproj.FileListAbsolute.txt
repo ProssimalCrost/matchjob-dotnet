@@ -227,7 +227,6 @@ C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\obj\Debug\net8.0\refint\
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\obj\Debug\net8.0\MatchJob.pdb
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\obj\Debug\net8.0\MatchJob.genruntimeconfig.cache
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\obj\Debug\net8.0\ref\MatchJob.dll
-C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\appsettings.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\MatchJob_Postman_Collection_DotNet.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\MatchJob.exe
@@ -320,7 +319,6 @@ C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\ru\Microsoft.Code
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin_verify\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
-C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\appsettings.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob.deps.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob.runtimeconfig.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob_Postman_Collection_DotNet.json
@@ -328,3 +326,4 @@ C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_ver
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob.runtimeconfig.json
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob_Postman_Collection_DotNet.json
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
+C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
