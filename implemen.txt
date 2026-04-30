@@ -1,0 +1,112 @@
+🚀 PRIORIDADE ALTA (faz agora)
+1. Sistema de avaliação (finalizar)
+
+Você já começou, então finalize:
+
+ Mostrar média no card do profissional
+ Mostrar lista de avaliações no perfil
+ Atualizar automaticamente após enviar avaliação
+
+👉 Isso impacta direto na confiança do app
+
+2. Perfil profissional completo
+ Editar perfil (bio, título, preço, localização)
+ Upload de foto/avatar
+ Status: disponível / ocupado
+ Tags (ex: React, elétrica, encanador)
+
+👉 Isso é o coração do MatchJob
+
+3. Categorias dinâmicas (muito importante)
+ Criar tabela Category no backend
+ Criar endpoint /categories
+ Mostrar categorias no front
+ Filtro por categoria
+
+👉 Sem isso o app não escala
+
+4. Busca com filtros
+ Buscar por nome
+ Filtrar por categoria
+ Filtrar por localização
+ Filtrar por avaliação
+
+👉 Isso transforma o app em produto utilizável
+
+⚡ PRIORIDADE MÉDIA (logo depois)
+5. Favoritos ❤️
+ Salvar profissional
+ Listar favoritos
+ Botão “favoritar”
+
+👉 aumenta retenção do usuário
+
+6. Chat (você já tem base)
+ Mostrar lista de conversas
+ Ordenar por última mensagem
+ Status: lida / não lida
+
+👉 isso vira diferencial real
+
+7. Tela de detalhes do profissional
+ Foto grande
+ Bio completa
+ Avaliações
+ Botão “contratar” / “chamar”
+
+👉 melhora muito UX
+
+🧠 PRIORIDADE ESTRATÉGICA (diferencial)
+8. Sistema de histórico
+ Histórico de contatos
+ Quem chamou quem
+ Quando aconteceu
+9. Verificação de perfil
+ Badge “verificado”
+ Upload de documento (simples por enquanto)
+10. Ranking inteligente
+ Mostrar melhores profissionais primeiro
+baseado em:
+avaliação
+quantidade de avaliações
+atividade
+💰 FUTURO (pensando como startup)
+11. Monetização
+ Destaque de perfil
+ Plano premium
+ Boost de visibilidade
+12. Notificações
+ Novo contato
+ Nova avaliação
+ Mensagem recebida
+🧱 Ordem ideal (resumo)
+
+Segue isso aqui:
+
+1. Avaliação (finalizar)
+2. Perfil profissional
+3. Categorias
+4. Busca com filtros
+5. Favoritos
+6. Chat melhorado
+7. Tela de detalhes
+🔥 Dica de sênior (importante)
+
+Se você fizer só isso aqui:
+
+Avaliação ✔️
+Perfil ✔️
+Categorias ✔️
+Busca ✔️
+
+👉 você já tem um MVP forte de verdade
+👉 já dá pra colocar na Play Store
+👉 já dá pra mostrar em entrevista
+
+Se quiser, próxima etapa posso te guiar passo a passo:
+
+👉 “vamos fazer categorias direito”
+ou
+👉 “vamos melhorar a busca com filtros”
+
+Só manda que a gente constrói isso nível profissional 👊
