@@ -325,5 +325,5 @@ C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob.deps.json
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob.runtimeconfig.json
 C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\bin_verify\MatchJob_Postman_Collection_DotNet.json
-C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
 C:\Users\asseit.SESI\Documents\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
+C:\Users\theyl\OneDrive\Documentos\matchjob-dotnet\back\bin\Debug\net8.0\appsettings.json
