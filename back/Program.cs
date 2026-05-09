@@ -64,12 +64,11 @@ builder.Services.AddAuthorization();
 // ═══════════════════════════════════════════════════════════
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.WithOrigins("http://localhost:5000")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -161,6 +160,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("AllowFrontend");
 app.UseCors();               // CORS antes de auth
 app.UseAuthentication();     // Valida o JWT
 app.UseAuthorization();      // Verifica permissões
