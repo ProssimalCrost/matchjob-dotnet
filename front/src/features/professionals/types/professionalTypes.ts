@@ -1,15 +1,16 @@
 export interface Professional {
-  id: string;
-  name: string;
-  title: string;
-  bio?: string;
-  category: string;
-  location: string;
-  price?: number;
-  rating?: number;
-  status: "available" | "busy";
-  tags: string[];
-  avatarUrl?: string;
+  Id: string;
+  UserId: string;
+  UserName: string;
+  UserEmail: string;
+  Description: string;
+  Category: string;
+  Tags: string[];
+  Location: string;
+  PriceRange: string;
+  Rating: number;
+  Status: "available" | "busy";
+  AvatarUrl?: string;
 }
 
 export type ProfessionalFilters = {
