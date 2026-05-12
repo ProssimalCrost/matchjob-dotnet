@@ -61,42 +61,90 @@ public class ProfessionalProfileService
         return ToResponse(profile);
     }
 
-    public async Task<List<ProfessionalProfileResponse>> ListAsync(
-        string? category,
-        string? location,
-        string? tag)
+   public async Task<PagedResult<ProfessionalProfileResponse>> ListAsync(
+    ProfessionalSearchQuery filters)
+{
+    var page = filters.Page <= 0 ? 1 : filters.Page;
+    var pageSize = filters.PageSize <= 0 ? 12 : filters.PageSize;
+
+    if (pageSize > 50)
+        pageSize = 50;
+
+    var query = _db.ProfessionalProfiles
+        .Include(p => p.User)
+        .Include(p => p.Category)
+        .Include(p => p.ProfessionalTags)
+            .ThenInclude(pt => pt.Tag)
+        .AsNoTracking()
+        .AsQueryable();
+
+    if (!string.IsNullOrWhiteSpace(filters.Search))
     {
-        var query = _db.ProfessionalProfiles
-            .Include(p => p.User)
-            .Include(p => p.Category)
-            .Include(p => p.ProfessionalTags)
-                .ThenInclude(pt => pt.Tag)
-            .AsQueryable();
+        var search = filters.Search.Trim().ToLower();
 
-        if (!string.IsNullOrEmpty(category))
-        {
-            query = query.Where(p =>
-                p.Category.Name.ToLower() == category.ToLower());
-        }
-
-        if (!string.IsNullOrEmpty(location))
-        {
-            query = query.Where(p =>
-                p.Location != null &&
-                p.Location.ToLower().Contains(location.ToLower()));
-        }
-
-        if (!string.IsNullOrEmpty(tag))
-        {
-            query = query.Where(p =>
-                p.ProfessionalTags.Any(pt =>
-                    pt.Tag.Name.ToLower() == tag.ToLower()));
-        }
-
-        var list = await query.ToListAsync();
-
-        return list.Select(ToResponse).ToList();
+        query = query.Where(p =>
+            p.User.Name.ToLower().Contains(search) ||
+            p.User.Email.ToLower().Contains(search) ||
+            (p.Description != null && p.Description.ToLower().Contains(search)) ||
+            p.Category.Name.ToLower().Contains(search) ||
+            (p.Location != null && p.Location.ToLower().Contains(search)) ||
+            p.ProfessionalTags.Any(pt => pt.Tag.Name.ToLower().Contains(search))
+        );
     }
+
+    if (!string.IsNullOrWhiteSpace(filters.Category))
+    {
+        var category = filters.Category.Trim().ToLower();
+
+        query = query.Where(p =>
+            p.Category.Name.ToLower() == category
+        );
+    }
+
+    if (!string.IsNullOrWhiteSpace(filters.Location))
+    {
+        var location = filters.Location.Trim().ToLower();
+
+        query = query.Where(p =>
+            p.Location != null &&
+            p.Location.ToLower().Contains(location)
+        );
+    }
+
+    if (!string.IsNullOrWhiteSpace(filters.Tag))
+    {
+        var tag = filters.Tag.Trim().ToLower();
+
+        query = query.Where(p =>
+            p.ProfessionalTags.Any(pt =>
+                pt.Tag.Name.ToLower() == tag
+            )
+        );
+    }
+
+    if (filters.MinRating.HasValue)
+    {
+        query = query.Where(p => p.Rating >= filters.MinRating.Value);
+    }
+
+    var total = await query.CountAsync();
+
+    var list = await query
+        .OrderByDescending(p => p.Rating)
+        .ThenBy(p => p.User.Name)
+        .Skip((page - 1) * pageSize)
+        .Take(pageSize)
+        .ToListAsync();
+
+    return new PagedResult<ProfessionalProfileResponse>
+    {
+        Data = list.Select(ToResponse).ToList(),
+        Total = total,
+        Page = page,
+        PageSize = pageSize,
+        TotalPages = (int)Math.Ceiling(total / (double)pageSize)
+    };
+}
 
     public async Task<ProfessionalProfileResponse?> GetByIdAsync(Guid id)
     {

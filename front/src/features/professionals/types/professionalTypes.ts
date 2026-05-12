@@ -15,7 +15,10 @@ export interface Professional {
 
 export type ProfessionalFilters = {
   search?: string;
+  category?: string;
   location?: string;
-  skill?: string;
+  tag?: string;
+  minRating?: number;
+  page?: number;
+  pageSize?: number;
 };
-

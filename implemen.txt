@@ -92,21 +92,10 @@ Segue isso aqui:
 7. Tela de detalhes
 🔥 Dica de sênior (importante)
 
-Se você fizer só isso aqui:
+🔥 No front implementar um carrousel de profissionais em destaque na home,
+usando os dados reais dos profissionais cadastrados.
+Isso dá um toque profissional e mostra o valor do app logo de cara.
 
-Avaliação ✔️
-Perfil ✔️
-Categorias ✔️
-Busca ✔️
+🔥 Criar e implemntar uma logo para o sistema
 
-👉 você já tem um MVP forte de verdade
-👉 já dá pra colocar na Play Store
-👉 já dá pra mostrar em entrevista
-
-Se quiser, próxima etapa posso te guiar passo a passo:
-
-👉 “vamos fazer categorias direito”
-ou
-👉 “vamos melhorar a busca com filtros”
-
-Só manda que a gente constrói isso nível profissional 👊
+🔥 Cria o site da empresa pai

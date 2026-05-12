@@ -25,15 +25,13 @@ public class ProfessionalController : ControllerBase
     /// </summary>
     [HttpGet]
     [AllowAnonymous]
-    public async Task<IActionResult> List(
-        [FromQuery] string? category,
-        [FromQuery] string? location,
-        [FromQuery] string? tag)
+    [HttpGet]
+
+    public async Task<IActionResult> List([FromQuery] ProfessionalSearchQuery filters)
     {
-        var result = await _service.ListAsync(category, location, tag);
+        var result = await _service.ListAsync(filters);
         return Ok(result);
     }
-
     /// <summary>
     /// GET /professionals/{id}
     /// </summary>
@@ -64,7 +62,7 @@ public class ProfessionalController : ControllerBase
     {
         try
         {
-             await _service.CreateAsync(userId, req);
+            await _service.CreateAsync(userId, req);
             return Ok("Perfil profissional criado com sucesso");
         }
         catch (KeyNotFoundException ex)
