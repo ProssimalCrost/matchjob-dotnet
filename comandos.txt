@@ -53,7 +53,8 @@ Abra OUTRO terminal (deixe o backend rodando) e execute:
 
   cd front
   npm install
-  npx expo start
+  npx expo start => mobile futuramente
+  npm run dev => NEXT
 
 Escaneie o QR Code com o app Expo Go no celular.
 
