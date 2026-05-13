@@ -22,3 +22,27 @@ export type ProfessionalFilters = {
   page?: number;
   pageSize?: number;
 };
+
+export type PagedProfessionalsResponse = {
+  data: Professional[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+};
+
+export type UpdateProfessionalProfileRequest = {
+  description: string;
+  categoryId: string;
+  location: string;
+  priceRange: string;
+  tagIds: string[];
+};
+
+export type EditProfessionalProfileForm = {
+  description: string;
+  categoryId: string;
+  location: string;
+  priceRange: string;
+  tagIds: string[];
+};

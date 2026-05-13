@@ -2,15 +2,9 @@ import { api } from "@/src/core/api/api";
 import type {
   Professional,
   ProfessionalFilters,
+  PagedProfessionalsResponse,
+  UpdateProfessionalProfileRequest,
 } from "../types/professionalTypes";
-
-export type PagedProfessionalsResponse = {
-  data: Professional[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
 
 export async function getProfessionals(
   filters?: ProfessionalFilters,
@@ -24,5 +18,17 @@ export async function getProfessionals(
 
 export async function getProfessionalById(id: string): Promise<Professional> {
   const response = await api.get<Professional>(`/professionals/${id}`);
+  return response.data;
+}
+
+export async function getMyProfessionalProfile(): Promise<Professional> {
+  const response = await api.get<Professional>("/professionals/me");
+  return response.data;
+}
+
+export async function updateMyProfessionalProfile(
+  data: UpdateProfessionalProfileRequest,
+): Promise<Professional> {
+  const response = await api.put<Professional>("/professionals/me", data);
   return response.data;
 }

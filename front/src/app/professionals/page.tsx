@@ -23,24 +23,37 @@ export default function ProfessionalsPage() {
   const [minRating, setMinRating] = useState("Todas");
 
   useEffect(() => {
-    async function loadProfessionals() {
-      try {
-        const result = await getProfessionals({
-          page: 1,
-          pageSize: 12,
-        });
-        setProfessionals(result.data);
-        setTotal(result.total);
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao buscar profissionais.");
-      } finally {
-        setLoading(false);
-      }
-    }
+  async function loadProfessionals() {
+    try {
+      const result = await getProfessionals({
+        page: 1,
+        pageSize: 12,
+      });
 
-    loadProfessionals();
-  }, []);
+      console.log("Resposta da API:", result);
+
+      const professionalsData = Array.isArray(result)
+        ? result
+        : result.data ?? result.data ?? [];
+
+      const totalData = Array.isArray(result)
+        ? result.length
+        : result.total ?? result.total ?? professionalsData.length;
+
+      setProfessionals(professionalsData);
+      setTotal(totalData);
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao buscar profissionais.");
+      setProfessionals([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadProfessionals();
+}, []);
 
   const categories = useMemo(() => {
     const uniqueCategories = professionals
@@ -101,7 +114,7 @@ export default function ProfessionalsPage() {
       <div className="flex">
         <Sidebar />
 
-        <section className="flex-1 px-6 py-8 lg:px-10">
+        <section className="flex-1 px-6 py-20 lg:px-10">
           <div className="mx-auto max-w-7xl">
             <section className="mb-10 overflow-hidden rounded-3xl bg-slate-950 px-8 py-10 text-white shadow-xl">
               <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-center">
