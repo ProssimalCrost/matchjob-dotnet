@@ -1,0 +1,18 @@
+
+> front@0.1.0 dev
+> next dev --hostname 127.0.0.1 --port 3000
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://127.0.0.1:3000
+- Network:       http://127.0.0.1:3000
+- Environments: .env.local
+✓ Ready in 547ms
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          14432
+- Dir:          C:\Users\asseit.SESI\Documents\matchjob-dotnet\front
+- Log:          .next\dev\logs\next-development.log
+
+Run taskkill /PID 14432 /F to stop it.
+[?25h
