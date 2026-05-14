@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<ProfessionalTag> ProfessionalTags => Set<ProfessionalTag>();
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<CategoryTag> CategoryTags => Set<CategoryTag>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -148,5 +149,18 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Review>()
             .HasIndex(r => new { r.ReviewerId, r.ProfessionalProfileId })
             .IsUnique();
+
+        modelBuilder.Entity<CategoryTag>()
+             .HasKey(ct => new { ct.CategoryId, ct.TagId });
+
+        modelBuilder.Entity<CategoryTag>()
+            .HasOne(ct => ct.Category)
+            .WithMany(c => c.CategoryTags)
+            .HasForeignKey(ct => ct.CategoryId);
+
+        modelBuilder.Entity<CategoryTag>()
+            .HasOne(ct => ct.Tag)
+            .WithMany(t => t.CategoryTags)
+            .HasForeignKey(ct => ct.TagId);
     }
 }

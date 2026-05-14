@@ -1,17 +1,15 @@
-export interface Professional {
+export type Professional = {
   Id: string;
-  UserId: string;
+  UserId?: string;
   UserName: string;
-  UserEmail: string;
-  Description: string;
-  Category: string;
-  Tags: string[];
-  Location: string;
-  PriceRange: string;
-  Rating: number;
-  Status: "available" | "busy";
-  AvatarUrl?: string;
-}
+  UserEmail?: string;
+  Description?: string;
+  Category?: string;
+  Tags?: string[];
+  Location?: string;
+  PriceRange?: string;
+  Rating?: number;
+};
 
 export type ProfessionalFilters = {
   search?: string;
