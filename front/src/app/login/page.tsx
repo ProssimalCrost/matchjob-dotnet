@@ -30,7 +30,12 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 px-4">
+    <main className="min-h-screen flex items-center justify-center bg-slate-950 px-4"
+    style={{
+        backgroundImage: "url('/logos/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center"
+      }}>
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl"
