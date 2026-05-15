@@ -34,10 +34,9 @@ function SidebarItem({
 }: SidebarItemProps) {
   const className = `
     flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition
-    ${
-      active
-        ? "bg-purple-600 text-white shadow-lg shadow-purple-900/30"
-        : "text-slate-300 hover:bg-white/10 hover:text-white"
+    ${active
+      ? "bg-purple-600 text-white shadow-lg shadow-purple-900/30"
+      : "text-slate-300 hover:bg-white/10 hover:text-white"
     }
   `;
 
@@ -143,8 +142,8 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </SidebarItem>
 
           <SidebarItem
-            href="/professionals/profile/edit"
-            active={isActive("/professionals/profile/edit")}
+            href="/professionals/edit"
+            active={isActive("/professionals/edit")}
             icon={<UserCircleIcon className="h-5 w-5" />}
           >
             Perfil
