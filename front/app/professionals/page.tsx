@@ -1,2 +1,1 @@
-export { default } from "../../src/app/professionals/page";
-
+export { default } from "../../src/features/professionals/app/page";

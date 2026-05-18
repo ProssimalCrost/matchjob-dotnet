@@ -1,2 +1,1 @@
-export { default } from "../../src/app/register/page";
-
+export { default } from "../../src/features/auth/app/register/page";
