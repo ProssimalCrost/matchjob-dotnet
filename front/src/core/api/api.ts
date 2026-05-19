@@ -1,47 +1,34 @@
 import axios from "axios";
-import { getToken, removeToken, setToken } from "@/src/shared/utils/token";
-
-// Migra token salvo com a chave antiga ("token") para a chave correta ("matchjob_token")
-// Isso corrige usuários que fizeram login antes do fix do Navbar.
-if (typeof window !== "undefined") {
-  const legacyToken = window.localStorage.getItem("token");
-  if (legacyToken && !getToken()) {
-    setToken(legacyToken);
-    window.localStorage.removeItem("token");
-  }
-}
+import { createClient } from "@/src/core/supabase/client";
 
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5279",
+  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000",
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Injeta o token JWT em todas as requisições autenticadas
-api.interceptors.request.use((config) => {
-  const token = getToken();
+// Injects the Supabase access_token into every request
+api.interceptors.request.use(async (config) => {
+  const supabase = createClient();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
   }
 
   return config;
 });
 
-// Redireciona para /login em caso de 401
+// Redirect to /login on 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      removeToken();
-
-      if (typeof window !== "undefined") {
-        // location.replace não adiciona entrada no histórico de navegação
-        window.location.replace("/login");
-      }
+    if (error.response?.status === 401 && typeof window !== "undefined") {
+      window.location.replace("/login");
     }
-
     return Promise.reject(error);
   }
 );

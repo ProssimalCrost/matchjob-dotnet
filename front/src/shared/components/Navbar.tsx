@@ -13,6 +13,7 @@ import {
   PowerIcon,
   Bars3Icon,
   XMarkIcon,
+  HeartIcon,
 } from "@heroicons/react/24/solid";
 import { removeToken } from "@/src/shared/utils/token";
 
@@ -143,8 +144,17 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
           </SidebarItem>
 
           <SidebarItem
-            href="/professionals/profile/edit"
-            active={isActive("/professionals/profile/edit")}
+            href="/favorites"
+            active={isActive("/favorites")}
+            icon={<HeartIcon className="h-5 w-5" />}
+            onClick={onNavigate}
+          >
+            Favoritos
+          </SidebarItem>
+
+          <SidebarItem
+            href="/profile/edit"
+            active={isActive("/profile/edit")}
             icon={<UserCircleIcon className="h-5 w-5" />}
             onClick={onNavigate}
           >

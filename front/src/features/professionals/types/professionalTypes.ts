@@ -1,14 +1,27 @@
+export type TagDto = {
+  Id: string;
+  Name: string;
+  Slug?: string;
+};
+
 export type Professional = {
   Id: string;
-  UserId?: string;
+  UserId: string;
   UserName: string;
   UserEmail?: string;
+  Title?: string;
+  Bio?: string;
   Description?: string;
-  Category?: string;
-  Tags?: string[];
+  CategoryId: string;
+  Category: string;
+  Tags: TagDto[];
   Location?: string;
   PriceRange?: string;
-  Rating?: number;
+  Price?: number;
+  AvatarUrl?: string;
+  Available: boolean;
+  Rating: number;
+  ReviewCount: number;
 };
 
 export type ProfessionalFilters = {
@@ -17,30 +30,41 @@ export type ProfessionalFilters = {
   location?: string;
   tag?: string;
   minRating?: number;
+  available?: boolean;
   page?: number;
   pageSize?: number;
 };
 
 export type PagedProfessionalsResponse = {
-  data: Professional[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  Data: Professional[];
+  Total: number;
+  Page: number;
+  PageSize: number;
+  TotalPages: number;
+};
+
+export type CreateMyProfileRequest = {
+  title?: string;
+  bio?: string;
+  description?: string;
+  categoryId: string;
+  tagIds: string[];
+  location?: string;
+  priceRange?: string;
+  price?: number;
+  avatarUrl?: string;
+  available: boolean;
 };
 
 export type UpdateProfessionalProfileRequest = {
-  description: string;
+  title?: string;
+  bio?: string;
+  description?: string;
   categoryId: string;
-  location: string;
-  priceRange: string;
   tagIds: string[];
-};
-
-export type EditProfessionalProfileForm = {
-  description: string;
-  categoryId: string;
-  location: string;
-  priceRange: string;
-  tagIds: string[];
+  location?: string;
+  priceRange?: string;
+  price?: number;
+  avatarUrl?: string;
+  available: boolean;
 };

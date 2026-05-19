@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<CategoryTag> CategoryTags => Set<CategoryTag>();
     public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+    public DbSet<Favorite> Favorites => Set<Favorite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -191,5 +192,22 @@ public class AppDbContext : DbContext
             .HasOne(ct => ct.Tag)
             .WithMany(t => t.CategoryTags)
             .HasForeignKey(ct => ct.TagId);
+
+        modelBuilder.Entity<Favorite>(e =>
+        {
+            e.ToTable("favorites");
+
+            e.HasIndex(f => new { f.UserId, f.ProfessionalProfileId }).IsUnique();
+
+            e.HasOne(f => f.User)
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            e.HasOne(f => f.ProfessionalProfile)
+                .WithMany()
+                .HasForeignKey(f => f.ProfessionalProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

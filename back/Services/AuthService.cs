@@ -56,6 +56,12 @@ public class AuthService
         return BuildResponse(user);
     }
 
+    public async Task<AuthResponse?> GetMeAsync(Guid userId)
+    {
+        var user = await _db.Users.FindAsync(userId);
+        return user == null ? null : BuildResponse(user);
+    }
+
     private AuthResponse BuildResponse(User user) =>
         new(
             Token:  _jwt.GenerateToken(user),

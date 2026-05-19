@@ -1,13 +1,12 @@
 // Controllers/AuthController.cs
+using System.Security.Claims;
 using MatchJob.DTOs;
 using MatchJob.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MatchJob.Controllers;
 
-/// <summary>
-/// Endpoints de autenticação — públicos (não requerem JWT)
-/// </summary>
 [ApiController]
 [Route("auth")]
 public class AuthController : ControllerBase
@@ -16,10 +15,7 @@ public class AuthController : ControllerBase
 
     public AuthController(AuthService authService) => _authService = authService;
 
-    /// <summary>
     /// POST /auth/register
-    /// Body: { "name": "...", "email": "...", "password": "...", "role": "CLIENT" }
-    /// </summary>
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest req)
     {
@@ -34,10 +30,7 @@ public class AuthController : ControllerBase
         }
     }
 
-    /// <summary>
     /// POST /auth/login
-    /// Body: { "email": "...", "password": "..." }
-    /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest req)
     {
@@ -50,5 +43,25 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new { message = ex.Message });
         }
+    }
+
+    /// GET /auth/me — retorna dados do usuário autenticado
+    [HttpGet("me")]
+    [Authorize]
+    public async Task<IActionResult> Me()
+    {
+        var claim =
+            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
+            User.FindFirst("sub")?.Value;
+
+        if (!Guid.TryParse(claim, out var userId))
+            return Unauthorized(new { message = "Token inválido." });
+
+        var result = await _authService.GetMeAsync(userId);
+
+        if (result == null)
+            return NotFound(new { message = "Usuário não encontrado." });
+
+        return Ok(result);
     }
 }

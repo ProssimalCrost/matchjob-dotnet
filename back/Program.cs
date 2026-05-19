@@ -1,5 +1,4 @@
 // Program.cs — MatchJob .NET 8 API
-using System.Text;
 using MatchJob.Data;
 using MatchJob.Security;
 using MatchJob.Services;
@@ -19,32 +18,31 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // ═══════════════════════════════════════════════════════════
-// 2. JWT AUTHENTICATION
+// 2. JWT AUTHENTICATION — Supabase JWKS
 // ═══════════════════════════════════════════════════════════
-var jwtSecret = builder.Configuration["Jwt:Secret"]
-    ?? throw new InvalidOperationException("Jwt:Secret não configurado.");
-var jwtIssuer = builder.Configuration["Jwt:Issuer"]
-    ?? throw new InvalidOperationException("Jwt:Issuer não configurado.");
-var jwtAudience = builder.Configuration["Jwt:Audience"]
-    ?? throw new InvalidOperationException("Jwt:Audience não configurado.");
-var jwtKey    = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("Supabase:Url não configurado.");
+var supabaseAuthority = $"{supabaseUrl}/auth/v1";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Fetches signing keys from /.well-known/openid-configuration automatically
+        options.Authority            = supabaseAuthority;
+        options.RequireHttpsMetadata = true;
+
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer           = true,
+            ValidIssuer              = supabaseAuthority,
             ValidateAudience         = true,
+            ValidAudience            = "authenticated",
             ValidateLifetime         = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = jwtIssuer,
-            ValidAudience            = jwtAudience,
-            IssuerSigningKey         = jwtKey,
-            ClockSkew                = TimeSpan.Zero // Sem tolerância de tempo
+            ClockSkew                = TimeSpan.Zero,
         };
 
-        // Retorna JSON no 401 em vez de redirecionar
+        // Return JSON on 401 instead of redirecting
         options.Events = new JwtBearerEvents
         {
             OnChallenge = ctx =>
@@ -88,9 +86,8 @@ builder.Services.AddScoped<ServiceRequestService>();
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
     {
-        // Mantém PascalCase na serialização (padrão .NET)
         opts.JsonSerializerOptions.PropertyNamingPolicy = null;
-        // Converte enums para string (ex: "CLIENT" em vez de 0)
+        opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
         opts.JsonSerializerOptions.Converters.Add(
             new System.Text.Json.Serialization.JsonStringEnumConverter()
         );
@@ -137,6 +134,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<FavoriteService>();
 // ═══════════════════════════════════════════════════════════
 // BUILD
 // ═══════════════════════════════════════════════════════════

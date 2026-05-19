@@ -15,8 +15,8 @@ export async function register(data: RegisterRequest): Promise<AuthResponse> {
   return response.data;
 }
 
-export async function getProfile(): Promise<AuthResponse["user"]> {
-  const response = await api.get<AuthResponse["user"]>("/auth/profile");
+export async function getMe(): Promise<AuthResponse> {
+  const response = await api.get<AuthResponse>("/auth/me");
   return response.data;
 }
 

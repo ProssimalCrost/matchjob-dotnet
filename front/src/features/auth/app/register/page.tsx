@@ -36,8 +36,8 @@ export default function RegisterPage() {
         password,
       });
 
-      setToken(response.token);
-      router.push("/professionals");
+      setToken(response.Token);
+      router.push("/profile/setup");
     } catch (error: unknown) {
       console.error(error);
       const msg =

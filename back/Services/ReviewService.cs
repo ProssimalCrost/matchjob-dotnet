@@ -43,6 +43,13 @@ public class ReviewService
         _db.Reviews.Add(review);
         await _db.SaveChangesAsync();
 
+        // Recalculate rating on the professional profile
+        var allReviews = _db.Reviews.Where(r => r.ProfessionalProfileId == request.ProfessionalProfileId);
+        var count = await allReviews.CountAsync();
+        professional.Rating = count > 0 ? await allReviews.AverageAsync(r => r.Rating) : 0;
+        professional.ReviewCount = count;
+        await _db.SaveChangesAsync();
+
         return await ToResponse(review.Id);
     }
 

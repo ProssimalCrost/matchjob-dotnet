@@ -83,6 +83,31 @@ namespace MatchJob.Migrations
                     b.ToTable("conversations", (string)null);
                 });
 
+            modelBuilder.Entity("MatchJob.Models.Favorite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ProfessionalProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfessionalProfileId");
+
+                    b.HasIndex("UserId", "ProfessionalProfileId")
+                        .IsUnique();
+
+                    b.ToTable("favorites", (string)null);
+                });
+
             modelBuilder.Entity("MatchJob.Models.Message", b =>
                 {
                     b.Property<Guid>("Id")
@@ -143,6 +168,9 @@ namespace MatchJob.Migrations
 
                     b.Property<double>("Rating")
                         .HasColumnType("double precision");
+
+                    b.Property<int>("ReviewCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .HasColumnType("text");
@@ -376,6 +404,25 @@ namespace MatchJob.Migrations
                     b.Navigation("Client");
 
                     b.Navigation("Professional");
+                });
+
+            modelBuilder.Entity("MatchJob.Models.Favorite", b =>
+                {
+                    b.HasOne("MatchJob.Models.ProfessionalProfile", "ProfessionalProfile")
+                        .WithMany()
+                        .HasForeignKey("ProfessionalProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MatchJob.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProfessionalProfile");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MatchJob.Models.Message", b =>

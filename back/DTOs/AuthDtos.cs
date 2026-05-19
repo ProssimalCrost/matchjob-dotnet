@@ -7,7 +7,7 @@ public record RegisterRequest(
     string Name,
     string Email,
     string Password,
-    Role Role
+    Role Role = Role.CLIENT
 );
 
 public record LoginRequest(
