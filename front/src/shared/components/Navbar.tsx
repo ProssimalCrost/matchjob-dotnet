@@ -14,6 +14,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { removeToken } from "@/src/shared/utils/token";
 
 type SidebarItemProps = {
   href?: string;
@@ -52,7 +53,7 @@ function SidebarItem({
   if (href) {
     return (
       <li>
-        <Link href={href} className={className}>
+        <Link href={href} className={className} onClick={onClick}>
           {content}
         </Link>
       </li>
@@ -76,21 +77,22 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     if (path === "/professionals") {
       return pathname === "/professionals";
     }
-
     return pathname.startsWith(path);
   }
 
   function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
+    removeToken(); // usa a chave correta "matchjob_token"
     router.push("/login");
   }
 
   return (
     <>
       <div className="mb-8 flex items-center gap-3 px-2">
-        <Link href="/professionals" onClick={onNavigate} className="flex items-center gap-3">
+        <Link
+          href="/professionals"
+          onClick={onNavigate}
+          className="flex items-center gap-3"
+        >
           <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-lg shadow-purple-900/30">
             <Image
               src="/logos/logoside.png"
@@ -117,6 +119,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             href="/professionals"
             active={isActive("/professionals")}
             icon={<PresentationChartBarIcon className="h-5 w-5" />}
+            onClick={onNavigate}
           >
             Dashboard
           </SidebarItem>
@@ -125,6 +128,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             href="/services"
             active={isActive("/services")}
             icon={<ShoppingBagIcon className="h-5 w-5" />}
+            onClick={onNavigate}
           >
             Serviços
           </SidebarItem>
@@ -133,11 +137,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             href="/chat"
             active={isActive("/chat")}
             icon={<InboxIcon className="h-5 w-5" />}
-            suffix={
-              <span className="rounded-full bg-purple-500 px-2 py-0.5 text-xs font-bold text-white">
-                14
-              </span>
-            }
+            onClick={onNavigate}
           >
             Mensagens
           </SidebarItem>
@@ -146,6 +146,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             href="/professionals/profile/edit"
             active={isActive("/professionals/profile/edit")}
             icon={<UserCircleIcon className="h-5 w-5" />}
+            onClick={onNavigate}
           >
             Perfil
           </SidebarItem>
@@ -154,6 +155,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             href="/settings"
             active={isActive("/settings")}
             icon={<Cog6ToothIcon className="h-5 w-5" />}
+            onClick={onNavigate}
           >
             Configurações
           </SidebarItem>

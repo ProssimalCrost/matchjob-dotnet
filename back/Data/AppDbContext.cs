@@ -17,6 +17,7 @@ public class AppDbContext : DbContext
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<CategoryTag> CategoryTags => Set<CategoryTag>();
+    public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +66,34 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(c => c.ProfessionalId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ServiceRequest>(e =>
+        {
+            e.ToTable("service_requests");
+
+            e.Property(r => r.Status)
+                .HasConversion<string>();
+
+            e.HasOne(r => r.Client)
+                .WithMany()
+                .HasForeignKey(r => r.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(r => r.Professional)
+                .WithMany()
+                .HasForeignKey(r => r.ProfessionalId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            e.HasOne(r => r.Category)
+                .WithMany()
+                .HasForeignKey(r => r.CategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            e.HasIndex(r => r.ClientId);
+            e.HasIndex(r => r.ProfessionalId);
+            e.HasIndex(r => r.Status);
+            e.HasIndex(r => r.CreatedAt);
         });
 
         modelBuilder.Entity<Message>(e =>

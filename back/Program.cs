@@ -80,6 +80,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfessionalProfileService>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<MessageService>();
+builder.Services.AddScoped<ServiceRequestService>();
 
 // ═══════════════════════════════════════════════════════════
 // 5. CONTROLLERS + JSON

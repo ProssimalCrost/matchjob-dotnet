@@ -1,2 +1,1 @@
-export { default } from "../../src/app/profile/page";
-
+export { default } from "../../src/features/profile/app/page";
