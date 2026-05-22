@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { register } from "@/src/features/auth/services/authService";
+
+import { syncUser } from "@/src/features/auth/services/authService";
 import { setToken } from "@/src/shared/utils/token";
+import { supabase } from "@/src/shared/lib/supabaseClient";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -14,7 +16,7 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!name.trim() || !email.trim() || !password.trim()) {
@@ -30,20 +32,32 @@ export default function RegisterPage() {
     try {
       setLoading(true);
 
-      const response = await register({
-        name: name.trim(),
+      const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
+        options: { data: { full_name: name.trim() } },
       });
 
-      setToken(response.Token);
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (!data.session) {
+        alert("Verifique seu e-mail para confirmar o cadastro.");
+        router.push("/login");
+        return;
+      }
+
+      setToken(data.session.access_token);
+
+      // Garante que o usuário existe na tabela local antes de ir para /profile/setup
+      await syncUser();
+
       router.push("/profile/setup");
-    } catch (error: unknown) {
-      console.error(error);
-      const msg =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Erro ao criar conta. Verifique os dados.";
-      alert(msg);
+    } catch (err: unknown) {
+      console.error(err);
+      alert("Erro ao criar conta. Verifique os dados.");
     } finally {
       setLoading(false);
     }

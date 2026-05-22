@@ -11,9 +11,7 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error("[auth/callback] OAuth error:", error, errorDescription);
-    const params = new URLSearchParams({
-      error: errorDescription ?? error,
-    });
+    const params = new URLSearchParams({ error: errorDescription ?? error });
     return NextResponse.redirect(`${origin}/login?${params}`);
   }
 
@@ -47,26 +45,46 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=exchange_failed`);
   }
 
-  // Check whether the user already has a professional profile.
-  // 404 → first login, send to /profile/setup.
-  // Any other outcome → proceed to intended destination.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    return NextResponse.redirect(`${origin}/login?error=no_session`);
+  }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+  const authHeader = { Authorization: `Bearer ${session.access_token}` };
+
+  // Sincroniza o usuário Supabase com a tabela local (cria se não existir)
   try {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const syncRes = await fetch(`${apiUrl}/auth/sync-user`, {
+      method: "POST",
+      headers: { ...authHeader, "Content-Type": "application/json" },
+    });
 
-    if (session) {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
-      const profileRes = await fetch(`${apiUrl}/professionals/me`, {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
+    if (!syncRes.ok) {
+      console.error("[auth/callback] sync-user falhou:", syncRes.status, await syncRes.text());
+    }
+  } catch (err) {
+    console.error("[auth/callback] sync-user erro de rede:", err);
+  }
 
-      if (profileRes.status === 404) {
-        return NextResponse.redirect(`${origin}/profile/setup`);
-      }
+  // Decide o destino: se já tem perfil profissional → /professionals; senão → /profile/setup
+  try {
+    const profileRes = await fetch(`${apiUrl}/professionals/me`, {
+      headers: authHeader,
+    });
+
+    if (profileRes.status === 404) {
+      return NextResponse.redirect(`${origin}/profile/setup`);
+    }
+
+    if (profileRes.ok) {
+      return NextResponse.redirect(`${origin}${next}`);
     }
   } catch {
-    // API unreachable — fall through to default redirect
+    // API inacessível — redireciona para o destino padrão
   }
 
   return NextResponse.redirect(`${origin}${next}`);
