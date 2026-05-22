@@ -20,3 +20,12 @@ export async function getMe(): Promise<AuthResponse> {
   return response.data;
 }
 
+/**
+ * Sincroniza o usuário Supabase com a tabela local.
+ * Deve ser chamado após qualquer login/cadastro bem-sucedido no Supabase,
+ * antes de qualquer operação que exija o usuário na tabela local.
+ */
+export async function syncUser(): Promise<AuthResponse> {
+  const response = await api.post<AuthResponse>("/auth/sync-user");
+  return response.data;
+}

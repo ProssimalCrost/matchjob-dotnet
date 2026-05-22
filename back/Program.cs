@@ -1,6 +1,5 @@
 // Program.cs — MatchJob .NET 8 API
 using MatchJob.Data;
-using MatchJob.Security;
 using MatchJob.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // ═══════════════════════════════════════════════════════════
-// 2. JWT AUTHENTICATION — Supabase JWKS
+// 2. JWT AUTHENTICATION — Supabase (RS256 via JWKS)
 // ═══════════════════════════════════════════════════════════
 var supabaseUrl = builder.Configuration["Supabase:Url"]
     ?? throw new InvalidOperationException("Supabase:Url não configurado.");
@@ -27,22 +26,21 @@ var supabaseAuthority = $"{supabaseUrl}/auth/v1";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        // Fetches signing keys from /.well-known/openid-configuration automatically
+        // RS256: busca as chaves públicas automaticamente via OIDC discovery
         options.Authority            = supabaseAuthority;
-        options.RequireHttpsMetadata = true;
+        options.MetadataAddress      = $"{supabaseAuthority}/.well-known/openid-configuration";
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
 
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidIssuer              = supabaseAuthority,
-            ValidateAudience         = true,
-            ValidAudience            = "authenticated",
-            ValidateLifetime         = true,
-            ValidateIssuerSigningKey = true,
-            ClockSkew                = TimeSpan.Zero,
+            ValidateIssuer   = true,
+            ValidIssuer      = supabaseAuthority,
+            ValidateAudience = true,
+            ValidAudience    = "authenticated",
+            ValidateLifetime = true,
+            ClockSkew        = TimeSpan.Zero,
         };
 
-        // Return JSON on 401 instead of redirecting
         options.Events = new JwtBearerEvents
         {
             OnChallenge = ctx =>
@@ -58,7 +56,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ═══════════════════════════════════════════════════════════
-// 3. CORS — libera o app mobile (qualquer origem)
+// 3. CORS — libera o frontend Next.js
 // ═══════════════════════════════════════════════════════════
 builder.Services.AddCors(options =>
 {
@@ -71,17 +69,18 @@ builder.Services.AddCors(options =>
 });
 
 // ═══════════════════════════════════════════════════════════
-// 4. INJEÇÃO DE DEPENDÊNCIA — serviços e utilitários
+// 4. INJEÇÃO DE DEPENDÊNCIA — serviços
 // ═══════════════════════════════════════════════════════════
-builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ProfessionalProfileService>();
 builder.Services.AddScoped<ConversationService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<ServiceRequestService>();
+builder.Services.AddScoped<ReviewService>();
+builder.Services.AddScoped<FavoriteService>();
 
 // ═══════════════════════════════════════════════════════════
-// 5. CONTROLLERS + JSON
+// 5. CONTROLLERS + JSON (PascalCase para compatibilidade com o frontend)
 // ═══════════════════════════════════════════════════════════
 builder.Services.AddControllers()
     .AddJsonOptions(opts =>
@@ -94,7 +93,7 @@ builder.Services.AddControllers()
     });
 
 // ═══════════════════════════════════════════════════════════
-// 6. SWAGGER — documentação automática da API
+// 6. SWAGGER
 // ═══════════════════════════════════════════════════════════
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -106,7 +105,6 @@ builder.Services.AddSwaggerGen(c =>
         Description = "MVP — Conectando clientes a profissionais autônomos"
     });
 
-    // Adiciona suporte a JWT no Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name         = "Authorization",
@@ -114,7 +112,7 @@ builder.Services.AddSwaggerGen(c =>
         Scheme       = "bearer",
         BearerFormat = "JWT",
         In           = ParameterLocation.Header,
-        Description  = "Cole o token JWT aqui. Ex: eyJhbGci..."
+        Description  = "Cole o access_token do Supabase aqui."
     });
 
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
@@ -133,8 +131,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddScoped<ReviewService>();
-builder.Services.AddScoped<FavoriteService>();
 // ═══════════════════════════════════════════════════════════
 // BUILD
 // ═══════════════════════════════════════════════════════════
@@ -154,18 +150,17 @@ using (var scope = app.Services.CreateScope())
 // ═══════════════════════════════════════════════════════════
 if (app.Environment.IsDevelopment())
 {
-    // Swagger disponível em http://localhost:5000/swagger
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseCors("AllowFrontend");
-app.UseCors();               // CORS antes de auth
-app.UseAuthentication();     // Valida o JWT
-app.UseAuthorization();      // Verifica permissões
-app.MapControllers();        // Mapeia os controllers
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 
 Console.WriteLine("✅ MatchJob API rodando!");
+Console.WriteLine($"   JWT via: OIDC/JWKS (RS256) — {supabaseAuthority}");
 Console.WriteLine("   Swagger: http://localhost:5000/swagger");
 
 app.Run();

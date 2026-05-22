@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { login } from "@/src/features/auth/services/authService";
+import { syncUser } from "@/src/features/auth/services/authService";
 import { getMyProfessionalProfile } from "@/src/features/professionals/services/professionalService";
 import { setToken } from "@/src/shared/utils/token";
 import { supabase } from "@/src/shared/lib/supabaseClient";
@@ -14,19 +14,34 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.SyntheticEvent<HTMLFormElement>) {
     event.preventDefault();
 
     try {
       setLoading(true);
 
-      const response = await login({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      setToken(response.Token);
+      if (error) {
+        alert("Email ou senha incorretos.");
+        return;
+      }
+
+      if (!data.session) {
+        alert("Confirme seu e-mail antes de fazer login.");
+        return;
+      }
+
+      setToken(data.session.access_token);
+
+      // Garante que o usuário existe na tabela local antes de qualquer operação
+      await syncUser();
 
       try {
         await getMyProfessionalProfile();
@@ -34,14 +49,9 @@ export default function LoginPage() {
       } catch {
         router.push("/profile/setup");
       }
-    } catch (error: unknown) {
-      console.error(error);
-
-      const msg =
-        (error as { response?: { data?: { message?: string } } })?.response
-          ?.data?.message ?? "Erro ao fazer login. Verifique seus dados.";
-
-      alert(msg);
+    } catch (err: unknown) {
+      console.error(err);
+      alert("Erro ao fazer login. Verifique seus dados.");
     } finally {
       setLoading(false);
     }
@@ -62,8 +72,8 @@ export default function LoginPage() {
         console.error("Erro ao entrar com Google:", error.message);
         alert("Erro ao entrar com Google.");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       alert("Erro inesperado ao tentar entrar com Google.");
     } finally {
       setGoogleLoading(false);
@@ -112,7 +122,6 @@ export default function LoginPage() {
         <div className="space-y-4">
           <div>
             <label className="block text-sm text-slate-300 mb-1">E-mail</label>
-
             <input
               type="email"
               className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white outline-none focus:border-purple-500"
@@ -125,7 +134,6 @@ export default function LoginPage() {
 
           <div>
             <label className="block text-sm text-slate-300 mb-1">Senha</label>
-
             <input
               type="password"
               className="w-full rounded-lg bg-slate-800 border border-slate-700 px-4 py-3 text-white outline-none focus:border-purple-500"
