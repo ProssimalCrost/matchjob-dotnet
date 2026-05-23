@@ -1,18 +1,13 @@
-version: "3.9"
-
-# ─── Rede compartilhada ───────────────────────────────────────────────────────
 networks:
   matchjob-net:
     driver: bridge
 
-# ─── Volumes persistentes ────────────────────────────────────────────────────
 volumes:
   sqlserver-data:
   redis-data:
 
 services:
 
-  # ── Banco de dados SQL Server ───────────────────────────────────────────────
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: matchjob-db
@@ -27,12 +22,12 @@ services:
     networks:
       - matchjob-net
     healthcheck:
-      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "MatchJob@2024!", "-Q", "SELECT 1"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'MatchJob@2024!' -Q 'SELECT 1' -No || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
-  # ── Cache Redis ─────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     container_name: matchjob-redis
@@ -47,11 +42,10 @@ services:
       interval: 5s
       retries: 5
 
-  # ── Backend .NET ────────────────────────────────────────────────────────────
   backend:
     build:
-      context: ./backend
-      dockerfile: docker/backend/Dockerfile
+      context: ./back
+      dockerfile: ../docker/backend/Dockerfile
       target: build
     container_name: matchjob-api
     environment:
@@ -61,7 +55,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - .:/src
+      - ./back:/src
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -69,13 +63,13 @@ services:
         condition: service_healthy
     networks:
       - matchjob-net
-    command: dotnet watch run --project MatchJob.Api/MatchJob.Api.csproj
+    command: dotnet watch run
 
-  # ── Frontend Next.js ────────────────────────────────────────────────────────
   frontend:
     build:
-      context: ./frontend
-      dockerfile: docker/frontend/Dockerfile
+      context: ./front
+      dockerfile: ../docker/frontend/Dockerfile
+      target: deps
     container_name: matchjob-web
     environment:
       NEXT_PUBLIC_API_URL: "http://localhost:8080"
@@ -83,9 +77,9 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend:/app
+      - ./front:/app
       - /app/node_modules
-       - /app/.next
+      - /app/.next
     depends_on:
       - backend
     networks:
