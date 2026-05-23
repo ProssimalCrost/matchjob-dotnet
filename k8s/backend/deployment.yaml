@@ -1,0 +1,106 @@
+---
+# ─── Deployment do Backend .NET ───────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matchjob-backend
+  namespace: matchjob
+  labels:
+    app: matchjob-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matchjob-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: matchjob-backend
+    spec:
+      containers:
+        - name: api
+          image: matchjobacr.azurecr.io/matchjob-backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: matchjob-config
+          env:
+            - name: ConnectionStrings__Default
+              valueFrom:
+                secretKeyRef:
+                  name: matchjob-secrets
+                  key: DB_CONNECTION_STRING
+            - name: Jwt__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: matchjob-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 20
+      imagePullSecrets:
+        - name: acr-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matchjob-backend
+  namespace: matchjob
+spec:
+  selector:
+    app: matchjob-backend
+  ports:
+    - port: 80
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matchjob-backend-hpa
+  namespace: matchjob
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matchjob-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

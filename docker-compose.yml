@@ -1,0 +1,94 @@
+version: "3.9"
+
+# ─── Rede compartilhada ───────────────────────────────────────────────────────
+networks:
+  matchjob-net:
+    driver: bridge
+
+# ─── Volumes persistentes ────────────────────────────────────────────────────
+volumes:
+  sqlserver-data:
+  redis-data:
+
+services:
+
+  # ── Banco de dados SQL Server ───────────────────────────────────────────────
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: matchjob-db
+    environment:
+      SA_PASSWORD: "MatchJob@2024!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - matchjob-net
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "MatchJob@2024!", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Cache Redis ─────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: matchjob-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - matchjob-net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 5
+
+  # ── Backend .NET ────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/backend/Dockerfile
+      target: build
+    container_name: matchjob-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: "Server=sqlserver;Database=MatchJobDb;User Id=sa;Password=MatchJob@2024!;TrustServerCertificate=True"
+      Redis__Connection: "redis:6379"
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/src
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - matchjob-net
+    command: dotnet watch run --project MatchJob.Api/MatchJob.Api.csproj
+
+  # ── Frontend Next.js ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/frontend/Dockerfile
+    container_name: matchjob-web
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:8080"
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+       - /app/.next
+    depends_on:
+      - backend
+    networks:
+      - matchjob-net
+    working_dir: /app
+    command: npm run dev

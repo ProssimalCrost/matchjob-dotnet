@@ -1,0 +1,67 @@
+name: CD — Deploy para AKS
+
+on:
+  workflow_run:
+    workflows: ["CI — Build & Test"]
+    branches: [main]
+    types: [completed]
+
+env:
+  ACR_REGISTRY: matchjobacr.azurecr.io
+  AKS_RESOURCE_GROUP: rg-matchjob-prod
+  AKS_CLUSTER_NAME: aks-matchjob-prod
+  NAMESPACE: matchjob
+
+jobs:
+  deploy:
+    name: Deploy para AKS (produção)
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    environment: production          # requer aprovação manual no GitHub
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login no Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configurar kubectl para o AKS
+        uses: azure/aks-set-context@v4
+        with:
+          resource-group: ${{ env.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ env.AKS_CLUSTER_NAME }}
+
+      - name: Definir tag do commit
+        id: tag
+        run: echo "IMAGE_TAG=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+
+      - name: Aplicar ConfigMaps e Secrets
+        run: kubectl apply -f k8s/configmap-secrets.yaml
+
+      - name: Deploy Backend (rolling update)
+        run: |
+          kubectl set image deployment/matchjob-backend \
+            api=${{ env.ACR_REGISTRY }}/matchjob-backend:${{ steps.tag.outputs.IMAGE_TAG }} \
+            -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/matchjob-backend -n ${{ env.NAMESPACE }} --timeout=120s
+
+      - name: Deploy Frontend (rolling update)
+        run: |
+          kubectl set image deployment/matchjob-frontend \
+            web=${{ env.ACR_REGISTRY }}/matchjob-frontend:${{ steps.tag.outputs.IMAGE_TAG }} \
+            -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/matchjob-frontend -n ${{ env.NAMESPACE }} --timeout=120s
+
+      - name: Verificar pods em execução
+        run: kubectl get pods -n ${{ env.NAMESPACE }}
+
+      - name: Rollback automático em caso de falha
+        if: failure()
+        run: |
+          echo "Deploy falhou — iniciando rollback..."
+          kubectl rollout undo deployment/matchjob-backend -n ${{ env.NAMESPACE }}
+          kubectl rollout undo deployment/matchjob-frontend -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/matchjob-backend -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/matchjob-frontend -n ${{ env.NAMESPACE }}

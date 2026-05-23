@@ -1,0 +1,92 @@
+---
+# ─── Deployment do Frontend Next.js ──────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matchjob-frontend
+  namespace: matchjob
+  labels:
+    app: matchjob-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matchjob-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: matchjob-frontend
+    spec:
+      containers:
+        - name: web
+          image: matchjobacr.azurecr.io/matchjob-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: matchjob-config
+                  key: NEXT_PUBLIC_API_URL
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 20
+      imagePullSecrets:
+        - name: acr-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matchjob-frontend
+  namespace: matchjob
+spec:
+  selector:
+    app: matchjob-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matchjob-frontend-hpa
+  namespace: matchjob
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matchjob-frontend
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

@@ -1,0 +1,40 @@
+# ─── Ingress (NGINX + TLS via cert-manager) ───────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matchjob-ingress
+  namespace: matchjob
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  tls:
+    - hosts:
+        - matchjob.com.br
+        - api.matchjob.com.br
+      secretName: matchjob-tls
+  rules:
+    # Frontend
+    - host: matchjob.com.br
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: matchjob-frontend
+                port:
+                  number: 80
+    # Backend API
+    - host: api.matchjob.com.br
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: matchjob-backend
+                port:
+                  number: 80
