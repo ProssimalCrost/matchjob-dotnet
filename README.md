@@ -1,210 +1,235 @@
-# MatchJob Backend — .NET 8
+# MatchJob
 
-> API REST com ASP.NET Core 8, Entity Framework Core e PostgreSQL.
+> Plataforma que conecta profissionais autônomos a clientes.
+> Backend .NET 8 · Frontend Next.js · Mobile React Native + Expo
 
 ---
 
-## Estrutura do Projeto
+## Estrutura do Monorepo
 
 ```
 matchjob-dotnet/
-├── Controllers/
-│   ├── AuthController.cs           ← POST /auth/register | login
-│   ├── ProfessionalController.cs   ← GET/POST /professionals
-│   ├── ConversationController.cs   ← POST/GET /conversations
-│   └── MessageController.cs        ← POST/GET /messages
-├── Services/
-│   ├── AuthService.cs
-│   ├── ProfessionalProfileService.cs
-│   ├── ConversationService.cs
-│   └── MessageService.cs
-├── Models/
-│   ├── User.cs
-│   ├── ProfessionalProfile.cs
-│   ├── Conversation.cs
-│   └── Message.cs
-├── DTOs/
-│   ├── AuthDtos.cs
-│   └── OtherDtos.cs
-├── Data/
-│   ├── AppDbContext.cs              ← EF Core DbContext
-│   └── DataSeeder.cs               ← Seed inicial
-├── Security/
-│   └── JwtService.cs               ← Geração de tokens JWT
-├── Properties/
-│   └── launchSettings.json         ← Porta 5000
-├── Program.cs                      ← Ponto de entrada + DI + Middleware
-├── appsettings.json                ← Conexão DB + JWT
-├── MatchJob.csproj
-├── MatchJob_Postman_Collection_DotNet.json
-└── matchjob-app-api.js             ← api.js atualizado para porta 5000
+├── back/                         ← API REST (.NET 8 + PostgreSQL)
+│   ├── Controllers/
+│   │   ├── AuthController.cs        GET /auth/me | POST /auth/sync-user
+│   │   ├── ProfessionalController.cs  GET|POST|PUT /professionals
+│   │   ├── ReviewsController.cs     GET|POST /professionals/{id}/reviews
+│   │   ├── CategoryController.cs    GET /categories
+│   │   ├── TagController.cs         GET /categories/{id}/tags
+│   │   ├── FavoriteController.cs    GET|POST|DELETE /favorites
+│   │   ├── ConversationController.cs  POST|GET /conversations
+│   │   ├── MessageController.cs     POST|GET /messages
+│   │   └── ServiceRequestController.cs  CRUD /service-requests
+│   ├── Services/
+│   ├── Models/
+│   ├── DTOs/
+│   ├── Data/
+│   │   ├── AppDbContext.cs
+│   │   └── DataSeeder.cs            ← seed de categorias e tags
+│   ├── Migrations/
+│   ├── Program.cs                   ← DI + Auth Supabase (JWKS RS256) + CORS
+│   └── appsettings.json
+│
+├── front/                        ← Web (Next.js 16 + React 19 + Supabase SSR)
+│   └── src/
+│       ├── core/
+│       │   ├── api/api.ts           ← axios com interceptor JWT
+│       │   └── supabase/            ← client e server Supabase
+│       └── features/
+│           ├── auth/
+│           ├── professionals/
+│           ├── reviews/
+│           ├── favorites/
+│           ├── chat/
+│           └── services/
+│
+├── mobile/                       ← App Mobile (React Native + Expo SDK 51)
+│   ├── app/                         ← Expo Router (file-based routing)
+│   │   ├── _layout.tsx              AuthProvider + Stack
+│   │   ├── index.tsx                guarda de rota
+│   │   ├── login.tsx
+│   │   ├── register.tsx
+│   │   ├── complete-profile.tsx     obrigatório após cadastro
+│   │   ├── home.tsx
+│   │   ├── professionals/
+│   │   │   ├── index.tsx
+│   │   │   └── [id].tsx
+│   │   ├── messages/
+│   │   │   ├── index.tsx
+│   │   │   └── [id].tsx
+│   │   ├── requests/index.tsx
+│   │   ├── profile/
+│   │   │   ├── index.tsx
+│   │   │   └── edit.tsx
+│   │   └── settings.tsx
+│   └── src/
+│       ├── features/auth/context/   AuthContext + useAuth hook
+│       ├── services/                api.ts, supabase.ts, *Service.ts
+│       ├── types/                   professional, review, message, request…
+│       └── shared/components/       Button, Input, Card, StarRating, BottomTabBar…
+│
+├── docker-compose.yml            ← Backend + Frontend + PostgreSQL + Redis
+└── comandos.txt                  ← Referência rápida de comandos
 ```
 
 ---
 
-## Pré-requisitos
+## Stack
 
-| Ferramenta   | Versão | Download                          |
-|--------------|--------|-----------------------------------|
-| .NET SDK     | 8.0+   | https://dot.net/download          |
-| PostgreSQL   | 14+    | https://www.postgresql.org        |
-
----
-
-## 1. Configurar o Banco de Dados
-
-```sql
--- No psql ou pgAdmin:
-CREATE DATABASE matchjob;
-```
-
-Se seu PostgreSQL usar usuário/senha diferente de `postgres/postgres`,
-edite o arquivo `appsettings.json`:
-
-```json
-"DefaultConnection": "Host=localhost;Port=5432;Database=matchjob;Username=SEU_USER;Password=SUA_SENHA"
-```
+| Camada   | Tecnologia                                         |
+|----------|----------------------------------------------------|
+| Backend  | .NET 8, ASP.NET Core, EF Core, PostgreSQL          |
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS     |
+| Mobile   | React Native 0.74, Expo SDK 51, Expo Router v3     |
+| Auth     | Supabase Auth (email/senha + Google OAuth)         |
+| HTTP     | Axios (frontend/mobile) → JWT Supabase nos headers |
 
 ---
 
-## 2. Rodar o Backend
+## Autenticação
+
+O projeto usa **Supabase Auth** como provedor de identidade.
+
+- Login/cadastro via `supabase.auth.signInWithPassword()` ou `signUp()`
+- O `access_token` retornado pelo Supabase é enviado em todas as requisições ao backend: `Authorization: Bearer <token>`
+- O backend valida o JWT via **OIDC/JWKS (RS256)** — sem gerar tokens próprios
+- Após qualquer login, deve-se chamar `POST /auth/sync-user` para criar/sincronizar o usuário na tabela local
+- JSON do backend: **PascalCase** (`PropertyNamingPolicy = null`)
+
+---
+
+## Endpoints principais
+
+### Auth
+| Método | Rota               | Auth | Descrição                          |
+|--------|--------------------|------|------------------------------------|
+| GET    | /auth/me           | ✅   | Retorna/cria usuário local pelo JWT |
+| POST   | /auth/sync-user    | ✅   | Alias de /auth/me (POST)           |
+
+### Profissionais
+| Método | Rota                          | Auth | Descrição                         |
+|--------|-------------------------------|------|-----------------------------------|
+| GET    | /professionals                | —    | Lista com filtros + paginação      |
+| GET    | /professionals/me             | ✅   | Meu perfil profissional (404 se não criado) |
+| POST   | /professionals/me             | ✅   | Cria meu perfil profissional       |
+| PUT    | /professionals/me             | ✅   | Atualiza meu perfil                |
+| GET    | /professionals/{id}           | —    | Perfil por ID                      |
+| GET    | /professionals/{id}/reviews   | —    | Avaliações do profissional         |
+| POST   | /professionals/{id}/reviews   | ✅   | Criar avaliação                    |
+
+### Categorias e Tags
+| Método | Rota                    | Auth | Descrição             |
+|--------|-------------------------|------|-----------------------|
+| GET    | /categories             | —    | Todas as categorias   |
+| GET    | /categories/{id}/tags   | —    | Tags por categoria    |
+
+### Favoritos
+| Método | Rota                                 | Auth | Descrição              |
+|--------|--------------------------------------|------|------------------------|
+| GET    | /favorites                           | ✅   | Meus favoritos         |
+| POST   | /favorites/{professionalProfileId}   | ✅   | Adicionar favorito     |
+| DELETE | /favorites/{professionalProfileId}   | ✅   | Remover favorito       |
+| GET    | /favorites/{professionalProfileId}/check | ✅ | Verificar se favoritado |
+
+### Mensagens
+| Método | Rota                          | Auth | Descrição                     |
+|--------|-------------------------------|------|-------------------------------|
+| GET    | /conversations/user/{userId}  | ✅   | Minhas conversas               |
+| POST   | /conversations                | ✅   | Criar ou buscar conversa       |
+| GET    | /messages/{conversationId}    | ✅   | Mensagens de uma conversa      |
+| POST   | /messages                     | ✅   | Enviar mensagem                |
+
+### Pedidos de Serviço
+| Método | Rota                              | Auth | Descrição                    |
+|--------|-----------------------------------|------|------------------------------|
+| GET    | /service-requests/me              | ✅   | Meus pedidos                 |
+| POST   | /service-requests                 | ✅   | Criar pedido                 |
+| PATCH  | /service-requests/{id}/status     | ✅   | Atualizar status             |
+
+**Status possíveis:** `Pending` → `Accepted` / `Rejected` → `InProgress` → `Completed` / `Canceled`
+
+---
+
+## Regra de negócio central
+
+Todo usuário registrado é **simultaneamente cliente e profissional**. Após o cadastro, é obrigatório criar um `ProfessionalProfile` (tela `/complete-profile` no mobile, `/profile/setup` na web) antes de acessar o restante do app.
+
+---
+
+## Rodando em desenvolvimento
+
+Veja o arquivo **`comandos.txt`** na raiz do projeto para todos os comandos passo a passo.
+
+### Resumo rápido
 
 ```bash
-# Entre na pasta
-cd matchjob-dotnet
+# 1. Backend
+cd back && dotnet run
 
-# Restaura pacotes NuGet e sobe o servidor
-dotnet run
+# 2. Frontend web
+cd front && npm install && npm run dev
+
+# 3. Mobile
+cd mobile && npm install && npx expo start
+
+# 4. Tudo via Docker
+docker compose up --build
 ```
-
-Primeiro boot: o EF Core cria as tabelas e o seeder popula o banco:
-
-```
-✅ MatchJob API rodando!
-   Swagger: http://localhost:5000/swagger
-
-🌱 Seed: populando banco com dados iniciais...
-✅ Seed concluído!
-   Profissional: carlos@matchjob.com / 123456
-   Profissional: ana@matchjob.com    / 123456
-   Cliente:      joao@matchjob.com   / 123456
-```
-
-### Swagger UI
-
-Abra no navegador: **http://localhost:5000/swagger**
-
-Para testar rotas protegidas no Swagger:
-1. Clique em **POST /auth/login** → Execute → copie o `Token`
-2. Clique em **Authorize** (cadeado no topo) → cole o token → **Authorize**
-3. Use qualquer endpoint normalmente
 
 ---
 
-## 3. Atualizar o App Mobile
+## Variáveis de ambiente
 
-Copie o arquivo `matchjob-app-api.js` para `matchjob-app/services/api.js`
-(substitui o arquivo original que apontava para a porta 8080).
-
-```bash
-cp matchjob-app-api.js ../matchjob-app/services/api.js
-```
-
-> O backend .NET roda na **porta 5000** (em vez de 8080 do Spring).
-
----
-
-## 4. Endpoints
-
-### Auth (públicos)
-
-| Método | Rota            | Descrição         |
-|--------|-----------------|-------------------|
-| POST   | /auth/register  | Cadastrar usuário |
-| POST   | /auth/login     | Fazer login       |
-
-**Body (PascalCase — padrão .NET):**
+### Backend — `back/appsettings.json`
 ```json
 {
-  "Name": "João Silva",
-  "Email": "joao@email.com",
-  "Password": "123456",
-  "Role": "CLIENT"
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=matchjob;Username=postgres;Password=postgres"
+  },
+  "Supabase": {
+    "Url": "https://SEU_PROJETO.supabase.co"
+  }
 }
 ```
 
-> ⚠️ **Diferença do Spring:** O .NET usa **PascalCase** no JSON (`Name`, `Email`).
-> O frontend já trata isso pelo axios — os campos JavaScript em camelCase
-> são enviados e o .NET aceita ambos por padrão.
-
----
-
-### Profissionais (JWT obrigatório)
-
-| Método | Rota                          | Descrição             |
-|--------|-------------------------------|-----------------------|
-| GET    | /professionals                | Lista todos           |
-| GET    | /professionals?category=X     | Filtra por categoria  |
-| GET    | /professionals?location=X     | Filtra por cidade     |
-| GET    | /professionals?tag=X          | Filtra por habilidade |
-| GET    | /professionals/{id}           | Busca por ID          |
-| POST   | /professionals?userId={guid}  | Cria/atualiza perfil  |
-
-### Conversas e Mensagens (JWT obrigatório)
-
-| Método | Rota                        | Descrição                  |
-|--------|-----------------------------|----------------------------|
-| POST   | /conversations              | Cria conversa              |
-| GET    | /conversations/user/{id}    | Conversas do usuário       |
-| POST   | /messages                   | Envia mensagem             |
-| GET    | /messages/{conversationId}  | Lista mensagens da conversa|
-
----
-
-## 5. Testando com Postman
-
-1. Importe `MatchJob_Postman_Collection_DotNet.json`
-2. Execute **Login — Cliente de teste**
-3. Copie o `Token` da resposta
-4. Edite a variável `token` da collection e cole o valor
-5. Use os demais endpoints
-
----
-
-## 6. Comparativo Spring Boot vs .NET
-
-| Item               | Spring Boot (Java)       | .NET 8 (C#)                     |
-|--------------------|--------------------------|----------------------------------|
-| Porta padrão       | 8080                     | 5000                             |
-| JSON padrão        | camelCase                | PascalCase                       |
-| ORM                | Spring Data JPA          | Entity Framework Core            |
-| Autenticação       | Spring Security + JWT    | ASP.NET Auth + JwtBearer         |
-| Injeção dependência| @Autowired / @Bean       | AddScoped / AddSingleton         |
-| Documentação       | (Springdoc opcional)     | Swagger integrado (/swagger)     |
-| Seed de dados      | CommandLineRunner        | IHost + EnsureCreated            |
-| Hash de senha      | BCryptPasswordEncoder    | BCrypt.Net-Next                  |
-
----
-
-## 7. Possíveis Problemas
-
-**`dotnet: command not found`**
-→ Instale o .NET SDK em https://dot.net/download
-
-**`Connection refused` no PostgreSQL**
-→ Verifique se o PostgreSQL está rodando e se as credenciais no `appsettings.json` estão corretas
-
-**App mobile não conecta**
-→ O backend agora é na porta **5000**. Atualize o `api.js` com `http://SEU_IP:5000`
-
-**Erro de migration / tabela não existe**
-→ O `EnsureCreated()` cria as tabelas automaticamente. Se der erro, apague o banco e recrie:
-```sql
-DROP DATABASE matchjob;
-CREATE DATABASE matchjob;
+### Frontend Web — `front/.env.local`
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://SEU_PROJETO.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sua-anon-key
+NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
-Depois reinicie com `dotnet run`.
+
+### Mobile — `mobile/.env`
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://SEU_PROJETO.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=sua-anon-key
+EXPO_PUBLIC_API_URL=http://localhost:5000
+# Android emulator: use http://10.0.2.2:5000 no lugar de localhost
+```
 
 ---
 
-*MatchJob MVP — .NET 8 Edition 🚀*
+## Swagger
+
+Com o backend rodando: **http://localhost:5000/swagger**
+
+Para testar rotas protegidas:
+1. Faça login no Supabase e copie o `access_token`
+2. Clique em **Authorize** → cole o token → **Authorize**
+
+---
+
+## Possíveis problemas
+
+| Problema | Solução |
+|---|---|
+| `dotnet: command not found` | Instale .NET SDK 8 em https://dot.net/download |
+| Falha na conexão com PostgreSQL | Verifique se o serviço está rodando e as credenciais no `appsettings.json` |
+| Mobile não conecta ao backend | Use `http://10.0.2.2:5000` no Android emulator ou o IP da máquina no celular físico |
+| `expo: command not found` | `npm install -g expo-cli` ou use `npx expo` |
+| Tabelas não existem | Rode `dotnet ef database update` ou deixe o `EnsureCreated` criar na primeira execução |
+| Porta 5000 ocupada | Edite `back/Properties/launchSettings.json` → troque para 5001 |
+
+---
+
+*MatchJob — .NET 8 + Next.js + Expo 🚀*

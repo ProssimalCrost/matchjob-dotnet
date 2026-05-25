@@ -10,12 +10,15 @@
 .NET SDK 8:   https://dot.net/download
 PostgreSQL:   https://www.postgresql.org/download
 Node.js 18+:  https://nodejs.org
+Docker:       https://www.docker.com/products/docker-desktop
 Expo Go:      Instalar no celular (App Store / Google Play)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PASSO 1 — BANCO DE DADOS (PostgreSQL)
+  PASSO 1 — BANCO DE DADOS (PostgreSQL local)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Obs: pule este passo se for usar Docker (veja seção Docker abaixo)
 
 Abra o terminal e execute:
 
@@ -44,48 +47,169 @@ Aguarde aparecer no console:
   ✅ MatchJob API rodando!
   ✅ Seed concluído!
 
+Rodar com hot reload (atualiza ao salvar):
+
+  cd back
+  dotnet watch run
+
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  PASSO 3 — FRONTEND (React Native + Expo)
+  PASSO 3 — FRONTEND WEB (Next.js)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 Abra OUTRO terminal (deixe o backend rodando) e execute:
 
   cd front
   npm install
-  npx expo start => mobile futuramente
-  npm run dev => NEXT
+  npm run dev
 
-Escaneie o QR Code com o app Expo Go no celular.
+Frontend disponível em: http://localhost:3000
 
-  Emulador Android → pressione "a" no terminal
-  Simulador iOS    → pressione "i" no terminal (só Mac)
+Criar arquivo de variáveis (primeira vez):
 
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  CONTAS DE TESTE (criadas automaticamente)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-  Cliente:      joao@matchjob.com   / senha: 123456
-  Profissional: carlos@matchjob.com / senha: 123456
-  Profissional: ana@matchjob.com    / senha: 123456
+  Copie front/.env.example para front/.env.local
+  Preencha NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  SE ESTIVER TESTANDO NO CELULAR FÍSICO
+  PASSO 4 — MOBILE (React Native + Expo)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Edite o arquivo: matchjob-app/services/api.js
+Abra OUTRO terminal e execute:
 
-Troque a linha:
-  const BASE_URL = 'http://10.0.2.2:5000';
+  cd mobile
+  npm install
 
-Pelo seu IP local:
-  const BASE_URL = 'http://192.168.1.XXX:5000';
+Configurar variáveis de ambiente (primeira vez):
 
-Para descobrir seu IP:
-  Windows → ipconfig
-  Mac/Linux → ifconfig
+  Copie mobile/.env.example para mobile/.env
+  Preencha com seus valores do Supabase e URL da API
+
+Iniciar o Expo:
+
+  npx expo start
+
+Opções no terminal após o start:
+
+  a  → abrir no Emulador Android
+  i  → abrir no Simulador iOS (somente Mac)
+  w  → abrir no navegador (web)
+  s  → escanear QR Code com Expo Go no celular
+
+Rodar direto em plataforma específica:
+
+  npx expo start --android
+  npx expo start --ios
+  npx expo start --web
+
+Limpar cache (quando tiver problema de módulo):
+
+  npx expo start --clear
+
+Rebuild completo (quando mudar dependências nativas):
+
+  npx expo prebuild
+  npx expo run:android
+  npx expo run:ios
+
+  ┌─────────────────────────────────────────────────────┐
+  │  URL DA API NO CELULAR/EMULADOR                     │
+  │                                                     │
+  │  Emulador Android:  http://10.0.2.2:5000            │
+  │  Simulador iOS:     http://localhost:5000           │
+  │  Celular físico:    http://SEU_IP_LOCAL:5000        │
+  │                     (descobrir: ipconfig / ifconfig) │
+  └─────────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DOCKER — RODAR TUDO COM UM COMANDO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Pré-requisito: Docker Desktop instalado e rodando.
+
+Subir todos os serviços (backend + frontend + DB + Redis):
+
+  docker compose up --build
+
+Subir em segundo plano (modo detached):
+
+  docker compose up --build -d
+
+Ver logs em tempo real:
+
+  docker compose logs -f
+
+Ver logs de um serviço específico:
+
+  docker compose logs -f backend
+  docker compose logs -f frontend
+
+Parar todos os serviços:
+
+  docker compose down
+
+Parar E apagar volumes (banco de dados incluso):
+
+  docker compose down -v
+
+Reconstruir apenas um serviço:
+
+  docker compose up --build backend
+  docker compose up --build frontend
+
+Acessar o shell de um container:
+
+  docker compose exec backend bash
+  docker compose exec frontend sh
+
+Ver status dos containers:
+
+  docker compose ps
+
+Serviços disponíveis via Docker:
+
+  Backend   → http://localhost:8080
+  Frontend  → http://localhost:3000
+  Swagger   → http://localhost:8080/swagger
+  PostgreSQL→ localhost:5432  (ou SQL Server em localhost:1433)
+  Redis     → localhost:6379
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  BANCO DE DADOS — MIGRATIONS (EF Core)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aplicar migrations pendentes:
+
+  cd back
+  dotnet ef database update
+
+Criar nova migration:
+
+  dotnet ef migrations add NomeDaMigration
+
+Reverter última migration:
+
+  dotnet ef database update NomeDaMigrationAnterior
+
+Listar migrations:
+
+  dotnet ef migrations list
+
+Recriar banco do zero (cuidado — apaga tudo):
+
+  psql -U postgres -c "DROP DATABASE matchjob; CREATE DATABASE matchjob;"
+  cd back
+  dotnet ef database update
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CONTAS DE TESTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Cadastre via Supabase Auth (tela de registro do app).
+  O seeder popula categorias e tags automaticamente.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -97,16 +221,32 @@ Erro: dotnet not found
 
 Erro: Failed to connect to database
   → Verifique se o PostgreSQL está rodando
-  → Verifique usuário/senha no appsettings.json
+  → Verifique usuário/senha no back/appsettings.json
 
 Erro: Porta 5000 ocupada
-  → Edite Properties/launchSettings.json
-  → Troque "applicationUrl": "http://localhost:5001"
-  → Atualize BASE_URL no api.js para porta 5001
+  → Edite back/Properties/launchSettings.json
+  → Troque applicationUrl para http://localhost:5001
+  → Atualize EXPO_PUBLIC_API_URL e NEXT_PUBLIC_API_URL
 
 Erro: Unable to resolve module (Expo)
+  → cd mobile
   → rm -rf node_modules
   → npm install
   → npx expo start --clear
+
+Erro: Network request failed (mobile não conecta)
+  → Android emulator: use http://10.0.2.2:5000
+  → Celular físico: use o IP local da máquina
+
+Erro: expo: command not found
+  → Use npx expo start (sem instalar globalmente)
+
+Erro no Docker: port already in use
+  → Pare o serviço local que usa a porta conflitante
+  → Ou mude a porta no docker-compose.yml
+
+Docker: container reinicia em loop
+  → docker compose logs backend
+  → Verifique as variáveis de ambiente no docker-compose.yml
 
 ================================================
