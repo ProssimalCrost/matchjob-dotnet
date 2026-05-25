@@ -44,18 +44,17 @@ services:
 
   backend:
     build:
-      context: ./back
-      dockerfile: ../docker/backend/Dockerfile
-      target: build
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: runtime
     container_name: matchjob-api
     environment:
-      ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__Default: "Server=sqlserver;Database=MatchJobDb;User Id=sa;Password=MatchJob@2024!;TrustServerCertificate=True"
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=MatchJobDb;User Id=sa;Password=MatchJob@2024!;TrustServerCertificate=True"
       Redis__Connection: "redis:6379"
+      Supabase__Url: "https://your-project.supabase.co"
     ports:
       - "8080:8080"
-    volumes:
-      - ./back:/src
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -63,26 +62,35 @@ services:
         condition: service_healthy
     networks:
       - matchjob-net
-    command: dotnet watch run
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   frontend:
     build:
-      context: ./front
-      dockerfile: ../docker/frontend/Dockerfile
-      target: deps
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+      target: runner
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:8080"
     container_name: matchjob-web
     environment:
       NEXT_PUBLIC_API_URL: "http://localhost:8080"
-      NODE_ENV: development
+      NODE_ENV: production
     ports:
       - "3000:3000"
-    volumes:
-      - ./front:/app
-      - /app/node_modules
-      - /app/.next
     depends_on:
       - backend
     networks:
       - matchjob-net
-    working_dir: /app
-    command: npm run dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

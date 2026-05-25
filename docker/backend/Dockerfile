@@ -1,10 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-COPY ["MatchJob.csproj", "./"]
+COPY ["back/MatchJob.csproj", "./"]
 RUN dotnet restore "MatchJob.csproj"
 
-COPY . .
+COPY back/ .
 RUN dotnet build "MatchJob.csproj" -c Release -o /app/build --no-restore
 
 FROM build AS publish

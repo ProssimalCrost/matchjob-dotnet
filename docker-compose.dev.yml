@@ -1,0 +1,38 @@
+# docker-compose.dev.yml - Desenvolvimento com Hot-Reload
+# Use com: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/backend/Dockerfile
+      target: build
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DOTNET_USE_POLLING_FILE_WATCHER: 1
+    volumes:
+      - ./back:/src
+      - /src/obj
+      - /src/bin
+    command: dotnet watch run --project MatchJob.csproj
+    ports:
+      - "8080:8080"
+      - "5000:5000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+      target: deps
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: "http://localhost:8080"
+    volumes:
+      - ./front:/app
+      - /app/node_modules
+      - /app/.next
+    command: npm run dev
+    ports:
+      - "3000:3000"
