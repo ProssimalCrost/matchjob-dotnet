@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   FlatList,
   Image,
@@ -15,10 +14,16 @@ import { Card } from '@/src/shared/components/Card';
 import { BottomTabBar } from '@/src/shared/components/BottomTabBar';
 import { StarRating } from '@/src/shared/components/StarRating';
 import { Loading } from '@/src/shared/components/Loading';
-import { Colors } from '@/src/shared/constants/colors';
 import { getProfessionals } from '@/src/services/professionalService';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import type { Professional } from '@/src/types/professional';
+
+const QUICK_ACTIONS = [
+  { label: 'Profissionais', icon: 'search' as const, href: '/professionals', colorClass: 'bg-primary/20', iconColor: '#7c3aed' },
+  { label: 'Favoritos', icon: 'heart' as const, href: '/favorites', colorClass: 'bg-red-500/20', iconColor: '#ef4444' },
+  { label: 'Mensagens', icon: 'chatbubble' as const, href: '/messages', colorClass: 'bg-teal-400/20', iconColor: '#2dd4bf' },
+  { label: 'Pedidos', icon: 'briefcase' as const, href: '/requests', colorClass: 'bg-amber-400/20', iconColor: '#f59e0b' },
+];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -37,57 +42,62 @@ export default function HomeScreen() {
   const firstName = user?.Name?.split(' ')[0] ?? 'Usuário';
 
   return (
-    <View style={styles.flex}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 16 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <View className="flex-1 bg-slate-950">
+      <ScrollView contentContainerStyle={{ paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-          <View>
-            <Text style={styles.greeting}>Olá, {firstName} 👋</Text>
-            <Text style={styles.headerSub}>Encontre o profissional ideal</Text>
+        <View
+          className="px-5 pb-5 bg-slate-950 border-b border-slate-800"
+          style={{ paddingTop: insets.top + 16 }}
+        >
+          <View className="flex-row justify-between items-center">
+            <View>
+              <Text className="text-white text-xl font-bold">Olá, {firstName} 👋</Text>
+              <Text className="text-slate-400 text-sm mt-0.5">Encontre o profissional ideal</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/settings')}
+              className="w-10 h-10 rounded-xl bg-slate-800 items-center justify-center"
+            >
+              <Ionicons name="settings-outline" size={20} color="#94a3b8" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => router.push('/settings')} style={styles.headerBtn}>
-            <Ionicons name="settings-outline" size={22} color={Colors.textOnPrimary} />
+
+          {/* Search bar */}
+          <TouchableOpacity
+            className="flex-row items-center gap-2.5 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3.5 mt-4"
+            onPress={() => router.push('/professionals')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="search-outline" size={16} color="#64748b" />
+            <Text className="text-slate-500 text-sm flex-1">Buscar profissional, categoria...</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Search shortcut */}
-        <TouchableOpacity
-          style={styles.searchBar}
-          onPress={() => router.push('/professionals')}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
-          <Text style={styles.searchPlaceholder}>Buscar profissional, categoria...</Text>
-        </TouchableOpacity>
-
         {/* Quick actions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Acesso rápido</Text>
-          <View style={styles.quickRow}>
+        <View className="px-5 mt-6 mb-6">
+          <Text className="text-white text-base font-bold mb-3">Acesso rápido</Text>
+          <View className="flex-row justify-between">
             {QUICK_ACTIONS.map((action) => (
               <TouchableOpacity
                 key={action.label}
-                style={styles.quickItem}
+                className="items-center gap-1.5"
                 onPress={() => router.push(action.href as any)}
               >
-                <View style={[styles.quickIcon, { backgroundColor: action.color + '20' }]}>
-                  <Ionicons name={action.icon as any} size={24} color={action.color} />
+                <View className={`w-14 h-14 rounded-2xl ${action.colorClass} items-center justify-center`}>
+                  <Ionicons name={action.icon} size={24} color={action.iconColor} />
                 </View>
-                <Text style={styles.quickLabel}>{action.label}</Text>
+                <Text className="text-slate-400 text-[11px] font-medium">{action.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         {/* Featured professionals */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Profissionais em destaque</Text>
+        <View className="mb-6">
+          <View className="flex-row justify-between items-center px-5 mb-3">
+            <Text className="text-white text-base font-bold">Profissionais em destaque</Text>
             <TouchableOpacity onPress={() => router.push('/professionals')}>
-              <Text style={styles.seeAll}>Ver todos</Text>
+              <Text className="text-primary text-sm font-semibold">Ver todos</Text>
             </TouchableOpacity>
           </View>
 
@@ -105,24 +115,28 @@ export default function HomeScreen() {
                   onPress={() => router.push(`/professionals/${item.Id}` as any)}
                   activeOpacity={0.85}
                 >
-                  <Card style={styles.proCard}>
-                    <View style={styles.avatar}>
+                  <Card className="w-36 p-3.5 items-center gap-1.5">
+                    <View className="w-14 h-14 rounded-full bg-primary/20 border border-primary/30 items-center justify-center overflow-hidden">
                       {item.AvatarUrl ? (
-                        <Image source={{ uri: item.AvatarUrl }} style={styles.avatarImg} />
+                        <Image source={{ uri: item.AvatarUrl }} className="w-full h-full" />
                       ) : (
-                        <Text style={styles.avatarInitial}>
+                        <Text className="text-xl font-bold text-primary">
                           {item.UserName?.charAt(0).toUpperCase()}
                         </Text>
                       )}
                     </View>
-                    <Text style={styles.proName} numberOfLines={1}>{item.UserName}</Text>
-                    <Text style={styles.proTitle} numberOfLines={1}>{item.Title ?? item.Category}</Text>
-                    <View style={styles.ratingRow}>
-                      <StarRating rating={item.Rating} size={13} />
-                      <Text style={styles.ratingCount}>({item.ReviewCount})</Text>
+                    <Text className="text-sm font-semibold text-white text-center" numberOfLines={1}>
+                      {item.UserName}
+                    </Text>
+                    <Text className="text-[11px] text-slate-400 text-center" numberOfLines={1}>
+                      {item.Title ?? item.Category}
+                    </Text>
+                    <View className="flex-row items-center gap-1">
+                      <StarRating rating={item.Rating} size={12} />
+                      <Text className="text-[11px] text-slate-500">({item.ReviewCount})</Text>
                     </View>
                     {item.PriceRange && (
-                      <Text style={styles.price}>{item.PriceRange}</Text>
+                      <Text className="text-xs text-primary font-semibold">{item.PriceRange}</Text>
                     )}
                   </Card>
                 </TouchableOpacity>
@@ -136,68 +150,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const QUICK_ACTIONS = [
-  { label: 'Profissionais', icon: 'search', href: '/professionals', color: Colors.primary },
-  { label: 'Mensagens', icon: 'chatbubble', href: '/messages', color: Colors.secondary },
-  { label: 'Pedidos', icon: 'briefcase', href: '/requests', color: Colors.warning },
-  { label: 'Meu perfil', icon: 'person', href: '/profile', color: Colors.success },
-];
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  greeting: { fontSize: 20, fontWeight: '700', color: Colors.textOnPrimary },
-  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
-  headerBtn: { padding: 6 },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    backgroundColor: Colors.surface,
-    marginHorizontal: 20,
-    marginTop: -16,
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 24,
-  },
-  searchPlaceholder: { fontSize: 14, color: Colors.textMuted },
-  section: { marginBottom: 24 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 12 },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: Colors.text, paddingHorizontal: 20, marginBottom: 12 },
-  seeAll: { fontSize: 13, color: Colors.primary, fontWeight: '600' },
-  quickRow: { flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20 },
-  quickItem: { alignItems: 'center', gap: 6 },
-  quickIcon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  quickLabel: { fontSize: 11, color: Colors.textSecondary, fontWeight: '500' },
-  proCard: { width: 150, padding: 14, alignItems: 'center', gap: 6 },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImg: { width: '100%', height: '100%' },
-  avatarInitial: { fontSize: 22, fontWeight: '700', color: Colors.primary },
-  proName: { fontSize: 13, fontWeight: '600', color: Colors.text, textAlign: 'center' },
-  proTitle: { fontSize: 11, color: Colors.textSecondary, textAlign: 'center' },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  ratingCount: { fontSize: 11, color: Colors.textMuted },
-  price: { fontSize: 12, color: Colors.primary, fontWeight: '600' },
-});

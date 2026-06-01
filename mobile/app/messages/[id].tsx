@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
@@ -13,7 +12,6 @@ import {
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '@/src/shared/constants/colors';
 import { getMessages, sendMessage } from '@/src/services/messageService';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import type { Message } from '@/src/types/message';
@@ -47,44 +45,46 @@ export default function ConversationScreen() {
       const msg = await sendMessage({ ConversationId: id, SenderId: user.UserId, Content: content });
       setMessages((prev) => [...prev, msg]);
       setTimeout(() => flatRef.current?.scrollToEnd({ animated: true }), 100);
-    } catch {
-      setText(content);
-    } finally {
-      setSending(false);
-    }
+    } catch { setText(content); }
+    finally { setSending(false); }
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      className="flex-1 bg-slate-950"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={0}
     >
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textOnPrimary} />
+      <View
+        className="flex-row justify-between items-center bg-slate-950 border-b border-slate-800 px-3 pb-3"
+        style={{ paddingTop: insets.top + 8 }}
+      >
+        <TouchableOpacity onPress={() => router.back()} className="p-2">
+          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Conversa</Text>
-        <View style={{ width: 40 }} />
+        <Text className="text-white text-base font-semibold">Conversa</Text>
+        <View className="w-10" />
       </View>
 
       {loading ? (
-        <ActivityIndicator color={Colors.primary} style={styles.loader} />
+        <ActivityIndicator color="#7c3aed" className="mt-10" />
       ) : (
         <FlatList
           ref={flatRef}
           data={messages}
           keyExtractor={(m) => m.Id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={{ padding: 16, gap: 8 }}
           onContentSizeChange={() => flatRef.current?.scrollToEnd({ animated: false })}
           renderItem={({ item }) => {
             const isOwn = item.SenderId === user?.UserId;
             return (
-              <View style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
-                {!isOwn && <Text style={styles.senderName}>{item.SenderName}</Text>}
-                <Text style={[styles.bubbleText, isOwn && styles.bubbleTextOwn]}>{item.Content}</Text>
-                <Text style={[styles.time, isOwn && styles.timeOwn]}>
+              <View className={`max-w-[78%] rounded-2xl p-3 ${isOwn ? 'self-end bg-primary rounded-br' : 'self-start bg-slate-800 rounded-bl'}`}>
+                {!isOwn && (
+                  <Text className="text-slate-400 text-[11px] font-semibold mb-0.5">{item.SenderName}</Text>
+                )}
+                <Text className={`text-sm leading-5 ${isOwn ? 'text-white' : 'text-slate-100'}`}>{item.Content}</Text>
+                <Text className={`text-[10px] mt-1 self-end ${isOwn ? 'text-violet-300' : 'text-slate-500'}`}>
                   {new Date(item.CreatedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                 </Text>
               </View>
@@ -93,99 +93,33 @@ export default function ConversationScreen() {
         />
       )}
 
-      {/* Input */}
-      <View style={[styles.inputBar, { paddingBottom: insets.bottom || 12 }]}>
+      {/* Input bar */}
+      <View
+        className="flex-row items-end gap-2.5 bg-slate-900 border-t border-slate-800 px-4 pt-3"
+        style={{ paddingBottom: insets.bottom || 12 }}
+      >
         <TextInput
-          style={styles.input}
+          className="flex-1 bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-sm text-white max-h-[120px]"
           value={text}
           onChangeText={setText}
           placeholder="Digite uma mensagem..."
-          placeholderTextColor={Colors.textMuted}
+          placeholderTextColor="#64748b"
           multiline
           maxLength={1000}
           returnKeyType="send"
           onSubmitEditing={handleSend}
         />
         <TouchableOpacity
-          style={[styles.sendBtn, (!text.trim() || sending) && styles.sendBtnDisabled]}
+          className={`w-11 h-11 rounded-full bg-primary items-center justify-center ${(!text.trim() || sending) ? 'opacity-50' : ''}`}
           onPress={handleSend}
           disabled={!text.trim() || sending}
         >
-          {sending ? (
-            <ActivityIndicator size="small" color={Colors.textOnPrimary} />
-          ) : (
-            <Ionicons name="send" size={18} color={Colors.textOnPrimary} />
-          )}
+          {sending
+            ? <ActivityIndicator size="small" color="#ffffff" />
+            : <Ionicons name="send" size={18} color="#ffffff" />
+          }
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-  backBtn: { padding: 8 },
-  headerTitle: { fontSize: 17, fontWeight: '600', color: Colors.textOnPrimary },
-  loader: { marginTop: 40 },
-  list: { padding: 16, gap: 8 },
-  bubble: {
-    maxWidth: '78%',
-    borderRadius: 16,
-    padding: 12,
-    alignSelf: 'flex-start',
-    backgroundColor: Colors.surface,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  bubbleOwn: {
-    alignSelf: 'flex-end',
-    backgroundColor: Colors.primary,
-    borderBottomRightRadius: 4,
-  },
-  bubbleOther: { borderBottomLeftRadius: 4 },
-  senderName: { fontSize: 11, color: Colors.textSecondary, fontWeight: '600', marginBottom: 3 },
-  bubbleText: { fontSize: 14, color: Colors.text, lineHeight: 20 },
-  bubbleTextOwn: { color: Colors.textOnPrimary },
-  time: { fontSize: 10, color: Colors.textMuted, marginTop: 4, alignSelf: 'flex-end' },
-  timeOwn: { color: 'rgba(255,255,255,0.65)' },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: Colors.surfaceAlt,
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: Colors.text,
-    maxHeight: 120,
-  },
-  sendBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendBtnDisabled: { opacity: 0.5 },
-});

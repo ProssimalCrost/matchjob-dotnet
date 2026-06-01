@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Image,
   Alert,
@@ -15,7 +14,6 @@ import { Card } from '@/src/shared/components/Card';
 import { Button } from '@/src/shared/components/Button';
 import { StarRating } from '@/src/shared/components/StarRating';
 import { BottomTabBar } from '@/src/shared/components/BottomTabBar';
-import { Colors } from '@/src/shared/constants/colors';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import { signOut } from '@/src/services/authService';
 
@@ -30,95 +28,86 @@ export default function ProfileScreen() {
       {
         text: 'Sair',
         style: 'destructive',
-        onPress: async () => {
-          await signOut();
-          clearAuth();
-          router.replace('/login');
-        },
+        onPress: async () => { await signOut(); clearAuth(); router.replace('/login'); },
       },
     ]);
   }
 
   return (
-    <View style={styles.flex}>
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-      >
+    <View className="flex-1 bg-slate-950">
+      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-          <Text style={styles.headerTitle}>Meu Perfil</Text>
-          <TouchableOpacity onPress={() => router.push('/settings')}>
-            <Ionicons name="settings-outline" size={22} color={Colors.textOnPrimary} />
+        <View
+          className="flex-row justify-between items-center bg-slate-950 border-b border-slate-800 px-5 pb-4"
+          style={{ paddingTop: insets.top + 16 }}
+        >
+          <Text className="text-white text-xl font-bold">Meu Perfil</Text>
+          <TouchableOpacity onPress={() => router.push('/settings')} className="w-9 h-9 rounded-xl bg-slate-800 items-center justify-center">
+            <Ionicons name="settings-outline" size={18} color="#94a3b8" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.content}>
+        <View className="px-5 pt-5 gap-4">
           {/* Avatar + name */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatar}>
-              {profile?.AvatarUrl ? (
-                <Image source={{ uri: profile.AvatarUrl }} style={styles.avatarImg} />
-              ) : (
-                <Text style={styles.avatarInitial}>
-                  {user?.Name?.charAt(0).toUpperCase() ?? '?'}
-                </Text>
-              )}
+          <View className="items-center gap-1.5">
+            <View className="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/40 items-center justify-center overflow-hidden">
+              {profile?.AvatarUrl
+                ? <Image source={{ uri: profile.AvatarUrl }} className="w-full h-full" />
+                : <Text className="text-3xl font-bold text-primary">{user?.Name?.charAt(0).toUpperCase() ?? '?'}</Text>
+              }
             </View>
-            <Text style={styles.name}>{user?.Name}</Text>
-            <Text style={styles.email}>{user?.Email}</Text>
+            <Text className="text-white text-xl font-bold">{user?.Name}</Text>
+            <Text className="text-slate-400 text-sm">{user?.Email}</Text>
             {profile && (
-              <View style={styles.ratingRow}>
+              <View className="flex-row items-center gap-1.5">
                 <StarRating rating={profile.Rating} size={16} />
-                <Text style={styles.ratingText}>{profile.Rating.toFixed(1)} ({profile.ReviewCount} avaliações)</Text>
+                <Text className="text-slate-400 text-sm">{profile.Rating.toFixed(1)} ({profile.ReviewCount} avaliações)</Text>
               </View>
             )}
           </View>
 
           {profile ? (
             <>
-              {/* Profile info */}
-              <Card style={styles.infoCard}>
+              <Card className="gap-2.5">
                 {profile.Title && (
-                  <View style={styles.row}>
-                    <Ionicons name="briefcase-outline" size={16} color={Colors.textSecondary} />
-                    <Text style={styles.infoText}>{profile.Title}</Text>
+                  <View className="flex-row items-center gap-2.5">
+                    <Ionicons name="briefcase-outline" size={16} color="#64748b" />
+                    <Text className="text-slate-300 text-sm">{profile.Title}</Text>
                   </View>
                 )}
-                <View style={styles.row}>
-                  <Ionicons name="grid-outline" size={16} color={Colors.textSecondary} />
-                  <Text style={styles.infoText}>{profile.Category}</Text>
+                <View className="flex-row items-center gap-2.5">
+                  <Ionicons name="grid-outline" size={16} color="#64748b" />
+                  <Text className="text-slate-300 text-sm">{profile.Category}</Text>
                 </View>
                 {profile.Location && (
-                  <View style={styles.row}>
-                    <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
-                    <Text style={styles.infoText}>{profile.Location}</Text>
+                  <View className="flex-row items-center gap-2.5">
+                    <Ionicons name="location-outline" size={16} color="#64748b" />
+                    <Text className="text-slate-300 text-sm">{profile.Location}</Text>
                   </View>
                 )}
                 {profile.PriceRange && (
-                  <View style={styles.row}>
-                    <Ionicons name="cash-outline" size={16} color={Colors.textSecondary} />
-                    <Text style={styles.infoText}>{profile.PriceRange}</Text>
+                  <View className="flex-row items-center gap-2.5">
+                    <Ionicons name="cash-outline" size={16} color="#64748b" />
+                    <Text className="text-slate-300 text-sm">{profile.PriceRange}</Text>
                   </View>
                 )}
-                <View style={styles.row}>
+                <View className="flex-row items-center gap-2.5">
                   <Ionicons
                     name={profile.Available ? 'checkmark-circle' : 'close-circle'}
                     size={16}
-                    color={profile.Available ? Colors.success : Colors.error}
+                    color={profile.Available ? '#22c55e' : '#ef4444'}
                   />
-                  <Text style={{ color: profile.Available ? Colors.success : Colors.error, fontSize: 14, fontWeight: '500' }}>
+                  <Text className={`text-sm font-medium ${profile.Available ? 'text-green-400' : 'text-red-400'}`}>
                     {profile.Available ? 'Disponível para trabalhos' : 'Indisponível'}
                   </Text>
                 </View>
               </Card>
 
-              {/* Tags */}
               {profile.Tags.length > 0 && (
-                <View style={styles.tagsWrap}>
+                <View className="flex-row flex-wrap gap-2">
                   {profile.Tags.map((tag) => (
-                    <View key={tag.Id} style={styles.tag}>
-                      <Text style={styles.tagText}>{tag.Name}</Text>
+                    <View key={tag.Id} className="px-3 py-1 rounded-full bg-primary/15 border border-primary/30">
+                      <Text className="text-xs text-primary font-medium">{tag.Name}</Text>
                     </View>
                   ))}
                 </View>
@@ -126,35 +115,22 @@ export default function ProfileScreen() {
 
               {profile.Bio && (
                 <Card>
-                  <Text style={styles.sectionLabel}>Bio</Text>
-                  <Text style={styles.bioText}>{profile.Bio}</Text>
+                  <Text className="text-slate-400 text-xs font-semibold uppercase tracking-wide mb-1.5">Bio</Text>
+                  <Text className="text-slate-300 text-sm leading-[22px]">{profile.Bio}</Text>
                 </Card>
               )}
 
-              <Button
-                label="Editar perfil"
-                variant="outline"
-                onPress={() => router.push('/profile/edit')}
-              />
+              <Button label="Editar perfil" variant="outline" onPress={() => router.push('/profile/edit')} />
             </>
           ) : (
-            <Card style={styles.noProfileCard}>
-              <Ionicons name="person-add-outline" size={40} color={Colors.textMuted} />
-              <Text style={styles.noProfileText}>Você ainda não tem perfil profissional</Text>
-              <Button
-                label="Criar perfil"
-                onPress={() => router.push('/complete-profile')}
-                style={{ width: '100%' }}
-              />
+            <Card className="items-center gap-3 py-6">
+              <Ionicons name="person-add-outline" size={40} color="#334155" />
+              <Text className="text-slate-400 text-sm text-center">Você ainda não tem perfil profissional</Text>
+              <Button label="Criar perfil" onPress={() => router.push('/complete-profile')} className="w-full" />
             </Card>
           )}
 
-          <Button
-            label="Sair"
-            variant="ghost"
-            onPress={handleSignOut}
-            style={styles.signOutBtn}
-          />
+          <Button label="Sair da conta" variant="ghost" onPress={handleSignOut} className="mt-2" />
         </View>
       </ScrollView>
 
@@ -162,51 +138,3 @@ export default function ProfileScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: Colors.textOnPrimary },
-  content: { paddingHorizontal: 20, paddingTop: 20, gap: 16 },
-  avatarSection: { alignItems: 'center', gap: 6 },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  avatarImg: { width: '100%', height: '100%' },
-  avatarInitial: { fontSize: 32, fontWeight: '700', color: Colors.primary },
-  name: { fontSize: 20, fontWeight: '700', color: Colors.text },
-  email: { fontSize: 13, color: Colors.textSecondary },
-  ratingRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  ratingText: { fontSize: 13, color: Colors.textSecondary },
-  infoCard: { gap: 10 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  infoText: { fontSize: 14, color: Colors.textSecondary },
-  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 20,
-    backgroundColor: Colors.primary + '15',
-    borderWidth: 1,
-    borderColor: Colors.primary + '30',
-  },
-  tagText: { fontSize: 12, color: Colors.primary, fontWeight: '500' },
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary, marginBottom: 4 },
-  bioText: { fontSize: 14, color: Colors.text, lineHeight: 22 },
-  noProfileCard: { alignItems: 'center', gap: 12, paddingVertical: 24 },
-  noProfileText: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center' },
-  signOutBtn: { marginTop: 8 },
-});

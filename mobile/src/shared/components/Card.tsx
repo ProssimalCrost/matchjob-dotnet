@@ -1,28 +1,21 @@
 import React from 'react';
-import { View, StyleSheet, type ViewProps, type ViewStyle } from 'react-native';
-import { Colors } from '../constants/colors';
+import { View, type ViewProps } from 'react-native';
+import { cn } from '../utils/cn';
 
 interface Props extends ViewProps {
-  style?: ViewStyle;
+  className?: string;
 }
 
-export function Card({ style, children, ...props }: Props) {
+export function Card({ className, children, ...props }: Props) {
   return (
-    <View style={[styles.card, style]} {...props}>
+    <View
+      className={cn(
+        'bg-slate-900 rounded-2xl p-4 border border-slate-800',
+        className,
+      )}
+      {...props}
+    >
       {children}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-});

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Switch,
   Alert,
@@ -13,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Input } from '@/src/shared/components/Input';
 import { Button } from '@/src/shared/components/Button';
 import { Loading } from '@/src/shared/components/Loading';
-import { Colors } from '@/src/shared/constants/colors';
 import { getCategories, getTagsByCategory } from '@/src/services/categoryService';
 import { createMyProfile } from '@/src/services/profileService';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
@@ -47,9 +45,7 @@ export default function CompleteProfileScreen() {
 
   useEffect(() => {
     if (!selectedCategoryId) { setTags([]); return; }
-    getTagsByCategory(selectedCategoryId)
-      .then(setTags)
-      .catch(() => setTags([]));
+    getTagsByCategory(selectedCategoryId).then(setTags).catch(() => setTags([]));
   }, [selectedCategoryId]);
 
   function toggleTag(id: string) {
@@ -59,10 +55,7 @@ export default function CompleteProfileScreen() {
   }
 
   async function handleSave() {
-    if (!selectedCategoryId) {
-      Alert.alert('Atenção', 'Selecione uma categoria.');
-      return;
-    }
+    if (!selectedCategoryId) { Alert.alert('Atenção', 'Selecione uma categoria.'); return; }
     setSaving(true);
     try {
       await createMyProfile({
@@ -88,17 +81,17 @@ export default function CompleteProfileScreen() {
 
   return (
     <ScrollView
-      style={styles.flex}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32 }]}
+      className="flex-1 bg-slate-950"
+      contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 32, paddingHorizontal: 24 }}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.title}>Complete seu perfil</Text>
-      <Text style={styles.subtitle}>
-        Todos os usuários também são profissionais. Preencha seu perfil para aparecer nas buscas.
+      <Text className="text-3xl font-bold text-white mb-2">Complete seu perfil</Text>
+      <Text className="text-slate-400 text-sm mb-6 leading-5">
+        Preencha seu perfil para aparecer nas buscas e receber pedidos de serviço.
       </Text>
 
       <Input label="Título profissional" value={title} onChangeText={setTitle} placeholder="Ex: Desenvolvedor Full-Stack" />
-      <Input label="Bio (resumo curto)" value={bio} onChangeText={setBio} placeholder="Uma linha sobre você" />
+      <Input label="Bio (resumo)" value={bio} onChangeText={setBio} placeholder="Uma linha sobre você" />
       <Input
         label="Descrição"
         value={description}
@@ -106,37 +99,40 @@ export default function CompleteProfileScreen() {
         placeholder="Descreva sua experiência e serviços"
         multiline
         numberOfLines={4}
-        style={styles.multiline}
+        className="h-24 pt-3"
+        textAlignVertical="top"
       />
       <Input label="Localização" value={location} onChangeText={setLocation} placeholder="Ex: São Paulo, SP" />
       <Input label="Faixa de preço" value={priceRange} onChangeText={setPriceRange} placeholder="Ex: R$ 50–200/h" />
 
-      <Text style={styles.sectionLabel}>Categoria *</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.Id}
-            style={[styles.chip, selectedCategoryId === cat.Id && styles.chipActive]}
-            onPress={() => { setSelectedCategoryId(cat.Id); setSelectedTagIds([]); }}
-          >
-            <Text style={[styles.chipText, selectedCategoryId === cat.Id && styles.chipTextActive]}>
-              {cat.Name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <Text className="text-slate-300 text-sm font-medium mb-2 mt-1">Categoria *</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+        <View className="flex-row gap-2 pr-2">
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat.Id}
+              className={`px-4 py-2 rounded-full border ${selectedCategoryId === cat.Id ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
+              onPress={() => { setSelectedCategoryId(cat.Id); setSelectedTagIds([]); }}
+            >
+              <Text className={`text-sm font-medium ${selectedCategoryId === cat.Id ? 'text-white' : 'text-slate-400'}`}>
+                {cat.Name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
 
       {tags.length > 0 && (
         <>
-          <Text style={styles.sectionLabel}>Habilidades / Tags</Text>
-          <View style={styles.tagsWrap}>
+          <Text className="text-slate-300 text-sm font-medium mb-2">Habilidades / Tags</Text>
+          <View className="flex-row flex-wrap gap-2 mb-4">
             {tags.map((tag) => (
               <TouchableOpacity
                 key={tag.Id}
-                style={[styles.chip, selectedTagIds.includes(tag.Id) && styles.chipActive]}
+                className={`px-3.5 py-2 rounded-full border ${selectedTagIds.includes(tag.Id) ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
                 onPress={() => toggleTag(tag.Id)}
               >
-                <Text style={[styles.chipText, selectedTagIds.includes(tag.Id) && styles.chipTextActive]}>
+                <Text className={`text-sm font-medium ${selectedTagIds.includes(tag.Id) ? 'text-white' : 'text-slate-400'}`}>
                   {tag.Name}
                 </Text>
               </TouchableOpacity>
@@ -145,43 +141,17 @@ export default function CompleteProfileScreen() {
         </>
       )}
 
-      <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Disponível para trabalhos</Text>
+      <View className="flex-row justify-between items-center mb-6">
+        <Text className="text-slate-200 text-[15px] font-medium">Disponível para trabalhos</Text>
         <Switch
           value={available}
           onValueChange={setAvailable}
-          trackColor={{ true: Colors.secondary, false: Colors.border }}
-          thumbColor={Colors.surface}
+          trackColor={{ true: '#7c3aed', false: '#334155' }}
+          thumbColor="#ffffff"
         />
       </View>
 
-      <Button label="Salvar perfil" onPress={handleSave} loading={saving} style={styles.btn} />
+      <Button label="Salvar perfil" onPress={handleSave} loading={saving} className="mb-2" />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  container: { paddingHorizontal: 24 },
-  title: { fontSize: 24, fontWeight: '800', color: Colors.text, marginBottom: 8 },
-  subtitle: { fontSize: 14, color: Colors.textSecondary, marginBottom: 24, lineHeight: 20 },
-  sectionLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 8, marginTop: 4 },
-  chips: { marginBottom: 16 },
-  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.surfaceAlt,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    marginRight: 8,
-  },
-  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: 13, color: Colors.textSecondary, fontWeight: '500' },
-  chipTextActive: { color: Colors.textOnPrimary },
-  multiline: { height: 100, textAlignVertical: 'top', paddingTop: 12 },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  switchLabel: { fontSize: 15, color: Colors.text, fontWeight: '500' },
-  btn: { marginTop: 8 },
-});

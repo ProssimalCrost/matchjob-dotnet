@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Switch,
   Alert,
@@ -14,7 +13,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { Input } from '@/src/shared/components/Input';
 import { Button } from '@/src/shared/components/Button';
 import { Loading } from '@/src/shared/components/Loading';
-import { Colors } from '@/src/shared/constants/colors';
 import { getCategories, getTagsByCategory } from '@/src/services/categoryService';
 import { updateMyProfile } from '@/src/services/profileService';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
@@ -34,31 +32,22 @@ export default function EditProfileScreen() {
   const [bio, setBio] = useState(profile?.Bio ?? '');
   const [description, setDescription] = useState(profile?.Description ?? '');
   const [selectedCategoryId, setSelectedCategoryId] = useState(profile?.CategoryId ?? '');
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
-    profile?.Tags.map((t) => t.Id) ?? [],
-  );
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(profile?.Tags.map((t) => t.Id) ?? []);
   const [location, setLocation] = useState(profile?.Location ?? '');
   const [priceRange, setPriceRange] = useState(profile?.PriceRange ?? '');
   const [available, setAvailable] = useState(profile?.Available ?? true);
 
   useEffect(() => {
-    getCategories()
-      .then(setCategories)
-      .catch(() => {})
-      .finally(() => setLoadingData(false));
+    getCategories().then(setCategories).catch(() => {}).finally(() => setLoadingData(false));
   }, []);
 
   useEffect(() => {
     if (!selectedCategoryId) { setTags([]); return; }
-    getTagsByCategory(selectedCategoryId)
-      .then(setTags)
-      .catch(() => setTags([]));
+    getTagsByCategory(selectedCategoryId).then(setTags).catch(() => setTags([]));
   }, [selectedCategoryId]);
 
   function toggleTag(id: string) {
-    setSelectedTagIds((prev) =>
-      prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id],
-    );
+    setSelectedTagIds((prev) => prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]);
   }
 
   async function handleSave() {
@@ -79,25 +68,23 @@ export default function EditProfileScreen() {
       router.back();
     } catch (err: any) {
       Alert.alert('Erro', err.response?.data?.message ?? 'Não foi possível salvar.');
-    } finally {
-      setSaving(false);
-    }
+    } finally { setSaving(false); }
   }
 
   if (loadingData) return <Loading />;
 
   return (
     <ScrollView
-      style={styles.flex}
-      contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32 }]}
+      className="flex-1 bg-slate-950"
+      contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32, paddingHorizontal: 24 }}
       keyboardShouldPersistTaps="handled"
     >
-      <View style={styles.topRow}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+      <View className="flex-row justify-between items-center mb-6">
+        <TouchableOpacity onPress={() => router.back()} className="p-1">
+          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
         </TouchableOpacity>
-        <Text style={styles.title}>Editar perfil</Text>
-        <View style={{ width: 24 }} />
+        <Text className="text-white text-lg font-bold">Editar perfil</Text>
+        <View className="w-8" />
       </View>
 
       <Input label="Título profissional" value={title} onChangeText={setTitle} placeholder="Ex: Designer UI/UX" />
@@ -109,37 +96,40 @@ export default function EditProfileScreen() {
         placeholder="Descreva seus serviços"
         multiline
         numberOfLines={4}
-        style={styles.multiline}
+        className="h-24 pt-3"
+        textAlignVertical="top"
       />
       <Input label="Localização" value={location} onChangeText={setLocation} placeholder="Ex: São Paulo, SP" />
       <Input label="Faixa de preço" value={priceRange} onChangeText={setPriceRange} placeholder="Ex: R$ 80–300/h" />
 
-      <Text style={styles.sectionLabel}>Categoria *</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chips}>
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.Id}
-            style={[styles.chip, selectedCategoryId === cat.Id && styles.chipActive]}
-            onPress={() => { setSelectedCategoryId(cat.Id); setSelectedTagIds([]); }}
-          >
-            <Text style={[styles.chipText, selectedCategoryId === cat.Id && styles.chipTextActive]}>
-              {cat.Name}
-            </Text>
-          </TouchableOpacity>
-        ))}
+      <Text className="text-slate-300 text-sm font-medium mb-2">Categoria *</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
+        <View className="flex-row gap-2 pr-2">
+          {categories.map((cat) => (
+            <TouchableOpacity
+              key={cat.Id}
+              className={`px-4 py-2 rounded-full border ${selectedCategoryId === cat.Id ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
+              onPress={() => { setSelectedCategoryId(cat.Id); setSelectedTagIds([]); }}
+            >
+              <Text className={`text-sm font-medium ${selectedCategoryId === cat.Id ? 'text-white' : 'text-slate-400'}`}>
+                {cat.Name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
 
       {tags.length > 0 && (
         <>
-          <Text style={styles.sectionLabel}>Habilidades / Tags</Text>
-          <View style={styles.tagsWrap}>
+          <Text className="text-slate-300 text-sm font-medium mb-2">Habilidades / Tags</Text>
+          <View className="flex-row flex-wrap gap-2 mb-4">
             {tags.map((tag) => (
               <TouchableOpacity
                 key={tag.Id}
-                style={[styles.chip, selectedTagIds.includes(tag.Id) && styles.chipActive]}
+                className={`px-3.5 py-2 rounded-full border ${selectedTagIds.includes(tag.Id) ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
                 onPress={() => toggleTag(tag.Id)}
               >
-                <Text style={[styles.chipText, selectedTagIds.includes(tag.Id) && styles.chipTextActive]}>
+                <Text className={`text-sm font-medium ${selectedTagIds.includes(tag.Id) ? 'text-white' : 'text-slate-400'}`}>
                   {tag.Name}
                 </Text>
               </TouchableOpacity>
@@ -148,37 +138,12 @@ export default function EditProfileScreen() {
         </>
       )}
 
-      <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Disponível para trabalhos</Text>
-        <Switch value={available} onValueChange={setAvailable} trackColor={{ true: Colors.secondary, false: Colors.border }} thumbColor={Colors.surface} />
+      <View className="flex-row justify-between items-center mb-6">
+        <Text className="text-slate-200 text-[15px] font-medium">Disponível para trabalhos</Text>
+        <Switch value={available} onValueChange={setAvailable} trackColor={{ true: '#7c3aed', false: '#334155' }} thumbColor="#ffffff" />
       </View>
 
       <Button label="Salvar alterações" onPress={handleSave} loading={saving} />
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  container: { paddingHorizontal: 24 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  title: { fontSize: 18, fontWeight: '700', color: Colors.text },
-  sectionLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 8 },
-  chips: { marginBottom: 16 },
-  tagsWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 16 },
-  chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.surfaceAlt,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    marginRight: 8,
-  },
-  chipActive: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  chipText: { fontSize: 13, color: Colors.textSecondary, fontWeight: '500' },
-  chipTextActive: { color: Colors.textOnPrimary },
-  multiline: { height: 100, textAlignVertical: 'top', paddingTop: 12 },
-  switchRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
-  switchLabel: { fontSize: 15, color: Colors.text, fontWeight: '500' },
-});

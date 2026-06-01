@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, ActivityIndicator, Text, StyleSheet } from 'react-native';
-import { Colors } from '../constants/colors';
+import { View, ActivityIndicator, Text } from 'react-native';
+import { cn } from '../utils/cn';
 
 interface Props {
   message?: string;
@@ -9,26 +9,14 @@ interface Props {
 
 export function Loading({ message, fullscreen = true }: Props) {
   return (
-    <View style={[styles.container, fullscreen && styles.fullscreen]}>
-      <ActivityIndicator size="large" color={Colors.primary} />
-      {message && <Text style={styles.message}>{message}</Text>}
+    <View
+      className={cn(
+        'items-center justify-center p-8 gap-3',
+        fullscreen && 'flex-1 bg-slate-950',
+      )}
+    >
+      <ActivityIndicator size="large" color="#7c3aed" />
+      {message && <Text className="text-slate-400 text-sm">{message}</Text>}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-    gap: 12,
-  },
-  fullscreen: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  message: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-});

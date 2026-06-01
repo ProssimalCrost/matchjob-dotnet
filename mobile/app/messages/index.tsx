@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
@@ -12,7 +11,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/src/shared/components/Card';
 import { BottomTabBar } from '@/src/shared/components/BottomTabBar';
-import { Colors } from '@/src/shared/constants/colors';
 import { getMyConversations } from '@/src/services/messageService';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import type { Conversation } from '@/src/types/message';
@@ -37,39 +35,46 @@ export default function MessagesScreen() {
     return user.UserId === conv.ClientId ? conv.ProfessionalName : conv.ClientName;
   }
 
+  function getRole(conv: Conversation): string {
+    if (!user) return '';
+    return user.UserId === conv.ClientId ? 'Profissional' : 'Cliente';
+  }
+
   return (
-    <View style={styles.flex}>
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <Text style={styles.headerTitle}>Mensagens</Text>
+    <View className="flex-1 bg-slate-950">
+      <View className="bg-slate-950 border-b border-slate-800 px-5 pb-4" style={{ paddingTop: insets.top + 16 }}>
+        <Text className="text-white text-xl font-bold">Mensagens</Text>
       </View>
 
       {loading ? (
-        <ActivityIndicator color={Colors.primary} style={styles.loader} />
+        <ActivityIndicator color="#7c3aed" className="mt-10" />
       ) : (
         <FlatList
           data={conversations}
           keyExtractor={(c) => c.Id}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={{ padding: 16, gap: 8 }}
           ListEmptyComponent={
-            <View style={styles.empty}>
-              <Ionicons name="chatbubbles-outline" size={52} color={Colors.textMuted} />
-              <Text style={styles.emptyText}>Nenhuma conversa ainda</Text>
-              <Text style={styles.emptySubText}>Vá ao perfil de um profissional e envie uma mensagem</Text>
+            <View className="flex-1 items-center justify-center p-12 gap-3">
+              <Ionicons name="chatbubbles-outline" size={52} color="#334155" />
+              <Text className="text-slate-400 text-base font-semibold">Nenhuma conversa ainda</Text>
+              <Text className="text-slate-500 text-sm text-center leading-5">
+                Vá ao perfil de um profissional e envie uma mensagem
+              </Text>
             </View>
           }
           renderItem={({ item }) => (
             <TouchableOpacity onPress={() => router.push(`/messages/${item.Id}` as any)} activeOpacity={0.8}>
-              <Card style={styles.convCard}>
-                <View style={styles.convAvatar}>
-                  <Text style={styles.convInitial}>{getOtherName(item).charAt(0).toUpperCase()}</Text>
-                </View>
-                <View style={styles.convInfo}>
-                  <Text style={styles.convName}>{getOtherName(item)}</Text>
-                  <Text style={styles.convSub}>
-                    {user?.UserId === item.ClientId ? 'Profissional' : 'Cliente'}
+              <Card className="flex-row items-center gap-3">
+                <View className="w-12 h-12 rounded-full bg-primary/20 border border-primary/30 items-center justify-center">
+                  <Text className="text-lg font-bold text-primary">
+                    {getOtherName(item).charAt(0).toUpperCase()}
                   </Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+                <View className="flex-1">
+                  <Text className="text-slate-200 text-[15px] font-semibold">{getOtherName(item)}</Text>
+                  <Text className="text-slate-500 text-xs mt-0.5">{getRole(item)}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#64748b" />
               </Card>
             </TouchableOpacity>
           )}
@@ -80,31 +85,3 @@ export default function MessagesScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: Colors.textOnPrimary },
-  loader: { marginTop: 40 },
-  list: { padding: 16, gap: 8 },
-  convCard: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  convAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  convInitial: { fontSize: 18, fontWeight: '700', color: Colors.primary },
-  convInfo: { flex: 1 },
-  convName: { fontSize: 15, fontWeight: '600', color: Colors.text },
-  convSub: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 48, gap: 10 },
-  emptyText: { fontSize: 16, fontWeight: '600', color: Colors.textSecondary },
-  emptySubText: { fontSize: 13, color: Colors.textMuted, textAlign: 'center' },
-});

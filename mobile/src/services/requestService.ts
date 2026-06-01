@@ -6,7 +6,7 @@ import type {
 } from '@/src/types/request';
 
 export async function getMyRequests(): Promise<ServiceRequest[]> {
-  const { data } = await api.get<ServiceRequest[]>('/service-requests/me');
+  const { data } = await api.get<ServiceRequest[]>('/service-requests');
   return data;
 }
 

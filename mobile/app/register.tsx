@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
@@ -14,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Input } from '@/src/shared/components/Input';
 import { Button } from '@/src/shared/components/Button';
-import { Colors } from '@/src/shared/constants/colors';
 import { signUpWithEmail } from '@/src/services/authService';
 
 export default function RegisterScreen() {
@@ -43,7 +41,6 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await signUpWithEmail(email.trim(), password, name.trim());
-      // AuthProvider detects new session → AuthContext sets hasProfile = false → index.tsx redirects to /complete-profile
     } catch (err: any) {
       Alert.alert('Erro ao cadastrar', err.message ?? 'Tente novamente.');
     } finally {
@@ -53,24 +50,28 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      className="flex-1 bg-slate-950"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 }}
+        className="px-6"
         keyboardShouldPersistTaps="handled"
       >
-        <TouchableOpacity onPress={() => router.back()} style={styles.back}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="w-10 h-10 items-center justify-center mb-4"
+        >
+          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
         </TouchableOpacity>
 
-        <View style={styles.header}>
-          <Text style={styles.brand}>MatchJob</Text>
-          <Text style={styles.subtitle}>Crie sua conta gratuitamente</Text>
+        <View className="items-center mb-7">
+          <Text className="text-3xl font-bold text-white tracking-tight">MatchJob</Text>
+          <Text className="text-slate-400 text-sm mt-1">Crie sua conta gratuitamente</Text>
         </View>
 
-        <View style={styles.form}>
-          <Text style={styles.title}>Criar conta</Text>
+        <View className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+          <Text className="text-2xl font-bold text-white mb-5">Criar conta</Text>
 
           <Input
             label="Nome completo"
@@ -81,7 +82,6 @@ export default function RegisterScreen() {
             error={errors.name}
             placeholder="Seu nome"
           />
-
           <Input
             label="E-mail"
             value={email}
@@ -91,7 +91,6 @@ export default function RegisterScreen() {
             error={errors.email}
             placeholder="seu@email.com"
           />
-
           <Input
             label="Senha"
             value={password}
@@ -100,7 +99,6 @@ export default function RegisterScreen() {
             error={errors.password}
             placeholder="Mínimo 6 caracteres"
           />
-
           <Input
             label="Confirmar senha"
             value={confirm}
@@ -110,11 +108,20 @@ export default function RegisterScreen() {
             placeholder="Repita a senha"
           />
 
-          <Button label="Criar conta" onPress={handleRegister} loading={loading} style={styles.btn} />
+          <Button
+            label="Criar conta"
+            onPress={handleRegister}
+            loading={loading}
+            className="mt-2"
+          />
 
-          <TouchableOpacity onPress={() => router.push('/login')} style={styles.link}>
-            <Text style={styles.linkText}>
-              Já tem conta? <Text style={styles.linkBold}>Entrar</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/login')}
+            className="items-center mt-4"
+          >
+            <Text className="text-slate-400 text-sm">
+              Já tem conta?{' '}
+              <Text className="text-primary font-semibold">Entrar</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -122,53 +129,3 @@ export default function RegisterScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  back: {
-    marginBottom: 16,
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  brand: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: Colors.primary,
-    letterSpacing: -1,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  form: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 20,
-  },
-  btn: { marginTop: 8 },
-  link: { alignItems: 'center', marginTop: 16 },
-  linkText: { fontSize: 14, color: Colors.textSecondary },
-  linkBold: { color: Colors.primary, fontWeight: '600' },
-});

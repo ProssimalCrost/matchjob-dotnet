@@ -1,28 +1,36 @@
+// Tokens matching front/ (Next.js + Tailwind) palette
 export const Colors = {
-  primary: '#1E3A5F',
-  primaryLight: '#2A5080',
-  secondary: '#2DD4BF',
-  secondaryLight: '#5EEAD4',
+  // Primary — violet-600 (same as front/)
+  primary: '#7c3aed',
+  primaryLight: '#8b5cf6',
+  primaryDark: '#6d28d9',
 
-  background: '#F5F7FA',
-  surface: '#FFFFFF',
-  surfaceAlt: '#F0F4F8',
+  // Backgrounds — slate scale (dark theme)
+  background: '#020617',   // slate-950
+  surface: '#0f172a',      // slate-900
+  surfaceAlt: '#1e293b',   // slate-800
+  surfaceElevated: '#1e293b',
 
-  text: '#1A1A2E',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
-  textOnPrimary: '#FFFFFF',
+  // Text
+  text: '#f8fafc',          // slate-50
+  textSecondary: '#cbd5e1', // slate-300
+  textMuted: '#64748b',     // slate-500
+  textOnPrimary: '#ffffff',
 
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
+  // Borders
+  border: '#334155',        // slate-700
+  borderLight: '#1e293b',   // slate-800
 
-  error: '#EF4444',
-  errorLight: '#FEE2E2',
-  success: '#22C55E',
-  successLight: '#DCFCE7',
-  warning: '#F59E0B',
-  warningLight: '#FEF3C7',
+  // Semantic
+  error: '#ef4444',
+  errorLight: '#450a0a',
+  success: '#22c55e',
+  successLight: '#052e16',
+  warning: '#f59e0b',
+  warningLight: '#451a03',
+  secondary: '#2dd4bf',     // teal-400
 
-  star: '#F59E0B',
-  overlay: 'rgba(0,0,0,0.5)',
+  // Misc
+  star: '#f59e0b',
+  overlay: 'rgba(0,0,0,0.7)',
 } as const;

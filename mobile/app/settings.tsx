@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Alert,
 } from 'react-native';
@@ -11,15 +10,13 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Card } from '@/src/shared/components/Card';
-import { Colors } from '@/src/shared/constants/colors';
 import { useAuth } from '@/src/features/auth/hooks/useAuth';
 import { signOut } from '@/src/services/authService';
 
 interface SettingItem {
-  icon: string;
+  icon: keyof typeof Ionicons.glyphMap;
   label: string;
   onPress: () => void;
-  color?: string;
   danger?: boolean;
 }
 
@@ -54,6 +51,7 @@ export default function SettingsScreen() {
     {
       title: 'Aplicativo',
       items: [
+        { icon: 'heart-outline', label: 'Favoritos', onPress: () => router.push('/favorites') },
         { icon: 'chatbubble-outline', label: 'Mensagens', onPress: () => router.push('/messages') },
         { icon: 'briefcase-outline', label: 'Pedidos', onPress: () => router.push('/requests') },
         { icon: 'search-outline', label: 'Profissionais', onPress: () => router.push('/professionals') },
@@ -68,108 +66,71 @@ export default function SettingsScreen() {
   ];
 
   return (
-    <View style={styles.flex}>
-      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textOnPrimary} />
+    <View className="flex-1 bg-slate-950">
+      {/* Header */}
+      <View
+        className="flex-row justify-between items-center bg-slate-950 border-b border-slate-800 px-3 pb-4"
+        style={{ paddingTop: insets.top + 16 }}
+      >
+        <TouchableOpacity onPress={() => router.back()} className="p-2">
+          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configurações</Text>
-        <View style={{ width: 40 }} />
+        <Text className="text-white text-lg font-bold">Configurações</Text>
+        <View className="w-10" />
       </View>
 
-      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-        {/* User info */}
-        <Card style={styles.userCard}>
-          <View style={styles.userAvatar}>
-            <Text style={styles.userInitial}>{user?.Name?.charAt(0).toUpperCase() ?? '?'}</Text>
+      <ScrollView
+        contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: insets.bottom + 32 }}
+      >
+        {/* User card */}
+        <Card className="flex-row items-center gap-3.5">
+          <View className="w-12 h-12 rounded-full bg-primary/20 border border-primary/30 items-center justify-center">
+            <Text className="text-lg font-bold text-primary">
+              {user?.Name?.charAt(0).toUpperCase() ?? '?'}
+            </Text>
           </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>{user?.Name}</Text>
-            <Text style={styles.userEmail}>{user?.Email}</Text>
+          <View className="flex-1">
+            <Text className="text-white text-base font-semibold">{user?.Name}</Text>
+            <Text className="text-slate-400 text-sm mt-0.5">{user?.Email}</Text>
           </View>
         </Card>
 
         {SETTINGS.map((group) => (
-          <View key={group.title} style={styles.group}>
-            <Text style={styles.groupTitle}>{group.title}</Text>
-            <Card style={styles.groupCard}>
+          <View key={group.title} className="gap-1.5">
+            <Text className="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">
+              {group.title}
+            </Text>
+            <Card className="p-0 overflow-hidden">
               {group.items.map((item, index) => (
                 <TouchableOpacity
                   key={item.label}
-                  style={[styles.settingItem, index < group.items.length - 1 && styles.settingDivider]}
+                  className={`flex-row items-center gap-3 p-3.5 ${index < group.items.length - 1 ? 'border-b border-slate-800' : ''}`}
                   onPress={item.onPress}
                   activeOpacity={0.7}
                 >
-                  <View style={[styles.settingIcon, { backgroundColor: (item.danger ? Colors.error : Colors.primary) + '15' }]}>
+                  <View
+                    className={`w-9 h-9 rounded-xl items-center justify-center ${item.danger ? 'bg-red-500/15' : 'bg-primary/15'}`}
+                  >
                     <Ionicons
-                      name={item.icon as any}
+                      name={item.icon}
                       size={18}
-                      color={item.danger ? Colors.error : Colors.primary}
+                      color={item.danger ? '#ef4444' : '#7c3aed'}
                     />
                   </View>
-                  <Text style={[styles.settingLabel, item.danger && styles.settingLabelDanger]}>
+                  <Text
+                    className={`flex-1 text-[15px] font-medium ${item.danger ? 'text-red-400' : 'text-slate-200'}`}
+                  >
                     {item.label}
                   </Text>
-                  <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+                  <Ionicons name="chevron-forward" size={16} color="#64748b" />
                 </TouchableOpacity>
               ))}
             </Card>
           </View>
         ))}
 
-        <Text style={styles.version}>MatchJob v1.0.0</Text>
+        <Text className="text-xs text-slate-600 text-center mt-2">MatchJob v1.0.0</Text>
       </ScrollView>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 12,
-    paddingBottom: 16,
-  },
-  backBtn: { padding: 8 },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: Colors.textOnPrimary },
-  content: { padding: 20, gap: 16 },
-  userCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  userAvatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: Colors.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  userInitial: { fontSize: 20, fontWeight: '700', color: Colors.primary },
-  userInfo: { flex: 1 },
-  userName: { fontSize: 16, fontWeight: '600', color: Colors.text },
-  userEmail: { fontSize: 13, color: Colors.textSecondary, marginTop: 2 },
-  group: { gap: 6 },
-  groupTitle: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.8, paddingLeft: 4 },
-  groupCard: { padding: 0, overflow: 'hidden' },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    padding: 14,
-  },
-  settingDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  settingIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  settingLabel: { flex: 1, fontSize: 15, color: Colors.text, fontWeight: '500' },
-  settingLabelDanger: { color: Colors.error },
-  version: { fontSize: 12, color: Colors.textMuted, textAlign: 'center', marginTop: 8 },
-});

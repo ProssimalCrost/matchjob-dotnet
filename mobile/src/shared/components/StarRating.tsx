@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../constants/colors';
 
 interface Props {
   rating: number;
@@ -11,27 +10,26 @@ interface Props {
   readonly?: boolean;
 }
 
-export function StarRating({ rating, maxStars = 5, size = 18, onRate, readonly = true }: Props) {
+export function StarRating({
+  rating,
+  maxStars = 5,
+  size = 18,
+  onRate,
+  readonly = true,
+}: Props) {
   return (
-    <View style={styles.row}>
+    <View className="flex-row gap-0.5">
       {Array.from({ length: maxStars }, (_, i) => {
         const filled = i + 1 <= Math.round(rating);
-        const star = filled ? 'star' : 'star-outline';
+        const name = filled ? 'star' : 'star-outline';
         return readonly ? (
-          <Ionicons key={i} name={star} size={size} color={Colors.star} />
+          <Ionicons key={i} name={name} size={size} color="#f59e0b" />
         ) : (
-          <TouchableOpacity key={i} onPress={() => onRate?.(i + 1)}>
-            <Ionicons name={star} size={size} color={Colors.star} />
+          <TouchableOpacity key={i} onPress={() => onRate?.(i + 1)} className="p-0.5">
+            <Ionicons name={name} size={size} color="#f59e0b" />
           </TouchableOpacity>
         );
       })}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 2,
-  },
-});

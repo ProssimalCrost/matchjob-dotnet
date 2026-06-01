@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
@@ -13,7 +12,6 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Input } from '@/src/shared/components/Input';
 import { Button } from '@/src/shared/components/Button';
-import { Colors } from '@/src/shared/constants/colors';
 import { signInWithEmail } from '@/src/services/authService';
 
 export default function LoginScreen() {
@@ -38,7 +36,6 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await signInWithEmail(email.trim(), password);
-      // AuthProvider handles redirect via onAuthStateChange
     } catch (err: any) {
       Alert.alert('Erro ao entrar', err.message ?? 'Tente novamente.');
     } finally {
@@ -48,20 +45,26 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      className="flex-1 bg-slate-950"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={[styles.container, { paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
+        className="px-6"
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.header}>
-          <Text style={styles.brand}>MatchJob</Text>
-          <Text style={styles.subtitle}>Conectando profissionais a clientes</Text>
+        {/* Brand */}
+        <View className="items-center mb-10">
+          <View className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 items-center justify-center mb-4">
+            <Text className="text-3xl font-bold text-primary">M</Text>
+          </View>
+          <Text className="text-4xl font-bold text-white tracking-tight">MatchJob</Text>
+          <Text className="text-slate-400 text-sm mt-1">Conectando profissionais a clientes</Text>
         </View>
 
-        <View style={styles.form}>
-          <Text style={styles.title}>Entrar</Text>
+        {/* Form */}
+        <View className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
+          <Text className="text-2xl font-bold text-white mb-5">Entrar</Text>
 
           <Input
             label="E-mail"
@@ -82,11 +85,20 @@ export default function LoginScreen() {
             placeholder="••••••••"
           />
 
-          <Button label="Entrar" onPress={handleLogin} loading={loading} style={styles.btn} />
+          <Button
+            label="Entrar"
+            onPress={handleLogin}
+            loading={loading}
+            className="mt-2"
+          />
 
-          <TouchableOpacity onPress={() => router.push('/register')} style={styles.link}>
-            <Text style={styles.linkText}>
-              Não tem conta? <Text style={styles.linkBold}>Cadastre-se</Text>
+          <TouchableOpacity
+            onPress={() => router.push('/register')}
+            className="items-center mt-4"
+          >
+            <Text className="text-slate-400 text-sm">
+              Não tem conta?{' '}
+              <Text className="text-primary font-semibold">Cadastre-se</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -94,58 +106,3 @@ export default function LoginScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: Colors.background },
-  container: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  brand: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: Colors.primary,
-    letterSpacing: -1,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  form: {
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 20,
-  },
-  btn: {
-    marginTop: 8,
-  },
-  link: {
-    alignItems: 'center',
-    marginTop: 16,
-  },
-  linkText: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  linkBold: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-});
