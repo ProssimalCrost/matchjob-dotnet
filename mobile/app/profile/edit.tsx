@@ -1,149 +1,364 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
+  Pressable,
   ScrollView,
-  TouchableOpacity,
-  Switch,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Input } from '@/src/shared/components/Input';
-import { Button } from '@/src/shared/components/Button';
+import { Sidebar } from '@/src/shared/components/Sidebar';
 import { Loading } from '@/src/shared/components/Loading';
-import { getCategories, getTagsByCategory } from '@/src/services/categoryService';
-import { updateMyProfile } from '@/src/services/profileService';
-import { useAuth } from '@/src/features/auth/hooks/useAuth';
-import type { Category, CategoryTag } from '@/src/types/category';
+import {
+  getCategories,
+  getTagsByCategory,
+} from '@/src/features/professionals/services/categoryService';
+import {
+  getMyProfessionalProfile,
+  updateMyProfessionalProfile,
+} from '@/src/features/professionals/services/professionalService';
+import type { Category } from '@/src/features/professionals/types/categoryTypes';
+import type { Tag } from '@/src/features/professionals/types/tagTypes';
+import type { Professional } from '@/src/features/professionals/types/professionalTypes';
+import { Colors } from '@/src/shared/constants/colors';
 
-export default function EditProfileScreen() {
+export default function ProfileEditScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { profile, refreshProfile } = useAuth();
 
+  const [profile, setProfile] = useState<Professional | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [tags, setTags] = useState<CategoryTag[]>([]);
-  const [loadingData, setLoadingData] = useState(true);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [title, setTitle] = useState(profile?.Title ?? '');
-  const [bio, setBio] = useState(profile?.Bio ?? '');
-  const [description, setDescription] = useState(profile?.Description ?? '');
-  const [selectedCategoryId, setSelectedCategoryId] = useState(profile?.CategoryId ?? '');
-  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(profile?.Tags.map((t) => t.Id) ?? []);
-  const [location, setLocation] = useState(profile?.Location ?? '');
-  const [priceRange, setPriceRange] = useState(profile?.PriceRange ?? '');
-  const [available, setAvailable] = useState(profile?.Available ?? true);
+  const [title, setTitle] = useState('');
+  const [bio, setBio] = useState('');
+  const [location, setLocation] = useState('');
+  const [priceRange, setPriceRange] = useState('');
+  const [price, setPrice] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [available, setAvailable] = useState(true);
 
   useEffect(() => {
-    getCategories().then(setCategories).catch(() => {}).finally(() => setLoadingData(false));
-  }, []);
+    async function load() {
+      try {
+        const [prof, cats] = await Promise.all([
+          getMyProfessionalProfile(),
+          getCategories(),
+        ]);
+        setProfile(prof);
+        setCategories(cats);
+        setTitle(prof.Title ?? '');
+        setBio(prof.Bio ?? '');
+        setLocation(prof.Location ?? '');
+        setPriceRange(prof.PriceRange ?? '');
+        setPrice(prof.Price?.toString() ?? '');
+        setCategoryId(prof.CategoryId ?? '');
+        setSelectedTagIds(prof.Tags.map((t) => t.Id));
+        setAvailable(prof.Available);
+        if (prof.CategoryId) {
+          setTags(await getTagsByCategory(prof.CategoryId));
+        }
+      } catch {
+        router.replace('/profile/setup');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [router]);
 
   useEffect(() => {
-    if (!selectedCategoryId) { setTags([]); return; }
-    getTagsByCategory(selectedCategoryId).then(setTags).catch(() => setTags([]));
-  }, [selectedCategoryId]);
+    if (!categoryId) {
+      setTags([]);
+      return;
+    }
+    getTagsByCategory(categoryId).then(setTags).catch(console.error);
+  }, [categoryId]);
 
-  function toggleTag(id: string) {
-    setSelectedTagIds((prev) => prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]);
+  function toggleTag(tagId: string) {
+    setSelectedTagIds((prev) =>
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId],
+    );
   }
 
-  async function handleSave() {
-    if (!selectedCategoryId) { Alert.alert('Atenção', 'Selecione uma categoria.'); return; }
-    setSaving(true);
+  async function handleSubmit() {
+    if (!categoryId) {
+      Alert.alert('Atenção', 'Selecione uma categoria.');
+      return;
+    }
     try {
-      await updateMyProfile({
-        Title: title || undefined,
-        Bio: bio || undefined,
-        Description: description || undefined,
-        CategoryId: selectedCategoryId,
-        TagIds: selectedTagIds,
-        Location: location || undefined,
-        PriceRange: priceRange || undefined,
-        Available: available,
+      setSaving(true);
+      await updateMyProfessionalProfile({
+        title: title.trim() || undefined,
+        bio: bio.trim() || undefined,
+        categoryId,
+        tagIds: selectedTagIds,
+        location: location.trim() || undefined,
+        priceRange: priceRange.trim() || undefined,
+        price: price ? Number(price) : undefined,
+        available,
       });
-      await refreshProfile();
-      router.back();
-    } catch (err: any) {
-      Alert.alert('Erro', err.response?.data?.message ?? 'Não foi possível salvar.');
-    } finally { setSaving(false); }
+      router.replace('/professionals');
+    } catch (error: unknown) {
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? 'Erro ao atualizar perfil.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  if (loadingData) return <Loading />;
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.appBackground }}>
+        <Sidebar />
+        <Loading message="Carregando perfil..." />
+      </View>
+    );
+  }
+
+  const inputStyle = {
+    backgroundColor: Colors.slate100,
+    borderColor: Colors.slate200,
+    color: Colors.text,
+  };
 
   return (
-    <ScrollView
-      className="flex-1 bg-slate-950"
-      contentContainerStyle={{ paddingTop: insets.top + 16, paddingBottom: insets.bottom + 32, paddingHorizontal: 24 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View className="flex-row justify-between items-center mb-6">
-        <TouchableOpacity onPress={() => router.back()} className="p-1">
-          <Ionicons name="arrow-back" size={24} color="#f8fafc" />
-        </TouchableOpacity>
-        <Text className="text-white text-lg font-bold">Editar perfil</Text>
-        <View className="w-8" />
-      </View>
+    <View style={{ flex: 1, backgroundColor: Colors.appBackground }}>
+      <Sidebar />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+          <Text style={{ color: Colors.text }} className="text-3xl font-bold">
+            Editar Perfil
+          </Text>
+          <Text style={{ color: Colors.textMuted }} className="mb-6 mt-1 text-sm">
+            Atualize suas informações profissionais.
+          </Text>
 
-      <Input label="Título profissional" value={title} onChangeText={setTitle} placeholder="Ex: Designer UI/UX" />
-      <Input label="Bio" value={bio} onChangeText={setBio} placeholder="Resumo em uma linha" />
-      <Input
-        label="Descrição"
-        value={description}
-        onChangeText={setDescription}
-        placeholder="Descreva seus serviços"
-        multiline
-        numberOfLines={4}
-        className="h-24 pt-3"
-        textAlignVertical="top"
-      />
-      <Input label="Localização" value={location} onChangeText={setLocation} placeholder="Ex: São Paulo, SP" />
-      <Input label="Faixa de preço" value={priceRange} onChangeText={setPriceRange} placeholder="Ex: R$ 80–300/h" />
-
-      <Text className="text-slate-300 text-sm font-medium mb-2">Categoria *</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-4">
-        <View className="flex-row gap-2 pr-2">
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat.Id}
-              className={`px-4 py-2 rounded-full border ${selectedCategoryId === cat.Id ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
-              onPress={() => { setSelectedCategoryId(cat.Id); setSelectedTagIds([]); }}
-            >
-              <Text className={`text-sm font-medium ${selectedCategoryId === cat.Id ? 'text-white' : 'text-slate-400'}`}>
-                {cat.Name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
-
-      {tags.length > 0 && (
-        <>
-          <Text className="text-slate-300 text-sm font-medium mb-2">Habilidades / Tags</Text>
-          <View className="flex-row flex-wrap gap-2 mb-4">
-            {tags.map((tag) => (
-              <TouchableOpacity
-                key={tag.Id}
-                className={`px-3.5 py-2 rounded-full border ${selectedTagIds.includes(tag.Id) ? 'bg-primary border-primary' : 'bg-slate-800 border-slate-700'}`}
-                onPress={() => toggleTag(tag.Id)}
+          <View
+            style={{ backgroundColor: Colors.surface, borderColor: Colors.slate200 }}
+            className="gap-6 rounded-3xl border p-6"
+          >
+            {profile && (
+              <View
+                style={{ borderBottomColor: Colors.slate100 }}
+                className="flex-row items-center gap-4 border-b pb-6"
               >
-                <Text className={`text-sm font-medium ${selectedTagIds.includes(tag.Id) ? 'text-white' : 'text-slate-400'}`}>
-                  {tag.Name}
+                <View
+                  style={{ backgroundColor: Colors.primary }}
+                  className="h-16 w-16 items-center justify-center rounded-2xl"
+                >
+                  <Text className="text-2xl font-bold text-white">
+                    {profile.UserName.charAt(0)}
+                  </Text>
+                </View>
+                <View>
+                  <Text style={{ color: Colors.text }} className="font-bold">
+                    {profile.UserName}
+                  </Text>
+                  <Text style={{ color: Colors.textMuted }} className="text-sm">
+                    {profile.UserEmail}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Título profissional
+              </Text>
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Ex: Desenvolvedor Fullstack"
+                placeholderTextColor={Colors.slate400}
+                style={inputStyle}
+                className="rounded-xl border px-4 py-3"
+              />
+            </View>
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Sobre você
+              </Text>
+              <TextInput
+                value={bio}
+                onChangeText={setBio}
+                placeholder="Descreva sua experiência e serviços."
+                placeholderTextColor={Colors.slate400}
+                multiline
+                style={{ ...inputStyle, minHeight: 96, textAlignVertical: 'top' }}
+                className="rounded-xl border px-4 py-3"
+              />
+            </View>
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Categoria
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {categories.map((cat) => {
+                  const selected = categoryId === cat.Id;
+                  return (
+                    <Pressable
+                      key={cat.Id}
+                      onPress={() => setCategoryId(cat.Id)}
+                      style={{
+                        backgroundColor: selected ? Colors.primary : Colors.slate100,
+                        borderColor: selected ? Colors.primary : Colors.slate200,
+                      }}
+                      className="rounded-full border px-3 py-1.5"
+                    >
+                      <Text
+                        style={{ color: selected ? Colors.white : Colors.textSecondary }}
+                        className="text-xs font-medium"
+                      >
+                        {cat.Name}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+
+            {tags.length > 0 && (
+              <View>
+                <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                  Habilidades / Tags
                 </Text>
-              </TouchableOpacity>
-            ))}
+                <View className="flex-row flex-wrap gap-2">
+                  {tags.map((tag) => {
+                    const selected = selectedTagIds.includes(tag.Id);
+                    return (
+                      <Pressable
+                        key={tag.Id}
+                        onPress={() => toggleTag(tag.Id)}
+                        style={{
+                          backgroundColor: selected ? Colors.primary : Colors.slate100,
+                          borderColor: selected ? Colors.primary : Colors.slate200,
+                        }}
+                        className="flex-row items-center gap-1.5 rounded-full border px-3 py-1.5"
+                      >
+                        {selected && (
+                          <Ionicons name="checkmark" size={12} color={Colors.white} />
+                        )}
+                        <Text
+                          style={{ color: selected ? Colors.white : Colors.textSecondary }}
+                          className="text-xs font-medium"
+                        >
+                          {tag.Name}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Localização
+              </Text>
+              <TextInput
+                value={location}
+                onChangeText={setLocation}
+                placeholder="Ex: Ipatinga, MG"
+                placeholderTextColor={Colors.slate400}
+                style={inputStyle}
+                className="rounded-xl border px-4 py-3"
+              />
+            </View>
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Valor por hora (R$)
+              </Text>
+              <TextInput
+                value={price}
+                onChangeText={setPrice}
+                placeholder="80"
+                placeholderTextColor={Colors.slate400}
+                keyboardType="numeric"
+                style={inputStyle}
+                className="rounded-xl border px-4 py-3"
+              />
+            </View>
+
+            <View>
+              <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-semibold">
+                Faixa de preço
+              </Text>
+              <TextInput
+                value={priceRange}
+                onChangeText={setPriceRange}
+                placeholder="Ex: R$ 50 - R$ 150/hora"
+                placeholderTextColor={Colors.slate400}
+                style={inputStyle}
+                className="rounded-xl border px-4 py-3"
+              />
+            </View>
+
+            <View className="flex-row items-center gap-3">
+              <Pressable
+                onPress={() => setAvailable(!available)}
+                style={{
+                  backgroundColor: available ? Colors.primary : Colors.slate300,
+                  width: 44,
+                  height: 24,
+                  borderRadius: 12,
+                  justifyContent: 'center',
+                  paddingHorizontal: 2,
+                }}
+              >
+                <View
+                  style={{
+                    width: 16,
+                    height: 16,
+                    borderRadius: 8,
+                    backgroundColor: Colors.white,
+                    alignSelf: available ? 'flex-end' : 'flex-start',
+                  }}
+                />
+              </Pressable>
+              <Text style={{ color: Colors.textSecondary }} className="text-sm">
+                {available ? 'Disponível para contratação' : 'Indisponível no momento'}
+              </Text>
+            </View>
+
+            <View className="flex-row gap-3">
+              <Pressable
+                onPress={() => router.back()}
+                style={{ borderColor: Colors.slate200, flex: 1 }}
+                className="rounded-xl border py-3"
+              >
+                <Text style={{ color: Colors.textSecondary }} className="text-center text-sm font-semibold">
+                  Cancelar
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={handleSubmit}
+                disabled={saving}
+                style={{ backgroundColor: Colors.primary, flex: 1, opacity: saving ? 0.6 : 1 }}
+                className="rounded-xl py-3"
+              >
+                <Text className="text-center text-sm font-semibold text-white">
+                  {saving ? 'Salvando...' : 'Salvar alterações'}
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </>
-      )}
-
-      <View className="flex-row justify-between items-center mb-6">
-        <Text className="text-slate-200 text-[15px] font-medium">Disponível para trabalhos</Text>
-        <Switch value={available} onValueChange={setAvailable} trackColor={{ true: '#7c3aed', false: '#334155' }} thumbColor="#ffffff" />
-      </View>
-
-      <Button label="Salvar alterações" onPress={handleSave} loading={saving} />
-    </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }

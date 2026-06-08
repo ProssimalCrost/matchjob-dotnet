@@ -1,28 +1,27 @@
-import '../global.css';
+import '@/global.css';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AuthProvider } from '@/src/features/auth/context/AuthContext';
 
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="login" />
-          <Stack.Screen name="register" />
-          <Stack.Screen name="complete-profile" />
-          <Stack.Screen name="home" />
-          <Stack.Screen name="profile" />
-          <Stack.Screen name="professionals" />
-          <Stack.Screen name="messages" />
-          <Stack.Screen name="requests" />
-          <Stack.Screen name="favorites" />
-          <Stack.Screen name="settings" />
-        </Stack>
-      </AuthProvider>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="login" />
+        <Stack.Screen name="register" />
+        <Stack.Screen name="auth/callback" />
+        <Stack.Screen name="professionals/index" />
+        <Stack.Screen name="professionals/[id]" />
+        <Stack.Screen name="profile/setup/index" />
+        <Stack.Screen name="profile/edit" />
+        <Stack.Screen name="profile/index" />
+        <Stack.Screen name="favorites/index" />
+        <Stack.Screen name="chat/index" />
+        <Stack.Screen name="services/index" />
+        <Stack.Screen name="settings/index" />
+      </Stack>
     </SafeAreaProvider>
   );
 }

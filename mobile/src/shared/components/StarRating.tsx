@@ -1,33 +1,32 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Props {
-  rating: number;
-  maxStars?: number;
-  size?: number;
-  onRate?: (rating: number) => void;
-  readonly?: boolean;
-}
+import { Colors } from '@/src/shared/constants/colors';
 
 export function StarRating({
-  rating,
-  maxStars = 5,
-  size = 18,
-  onRate,
-  readonly = true,
-}: Props) {
+  value,
+  onChange,
+  size = 28,
+}: {
+  value: number;
+  onChange?: (v: number) => void;
+  size?: number;
+}) {
   return (
-    <View className="flex-row gap-0.5">
-      {Array.from({ length: maxStars }, (_, i) => {
-        const filled = i + 1 <= Math.round(rating);
-        const name = filled ? 'star' : 'star-outline';
-        return readonly ? (
-          <Ionicons key={i} name={name} size={size} color="#f59e0b" />
-        ) : (
-          <TouchableOpacity key={i} onPress={() => onRate?.(i + 1)} className="p-0.5">
-            <Ionicons name={name} size={size} color="#f59e0b" />
-          </TouchableOpacity>
+    <View className="flex-row gap-1">
+      {[1, 2, 3, 4, 5].map((star) => {
+        const filled = star <= value;
+        const Star = (
+          <Ionicons
+            name={filled ? 'star' : 'star-outline'}
+            size={size}
+            color={filled ? Colors.star : Colors.slate300}
+          />
+        );
+        if (!onChange) return <View key={star}>{Star}</View>;
+        return (
+          <Pressable key={star} onPress={() => onChange(star)} hitSlop={4}>
+            {Star}
+          </Pressable>
         );
       })}
     </View>

@@ -1,307 +1,354 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   View,
   Text,
+  Pressable,
   ScrollView,
-  TouchableOpacity,
-  Image,
-  Alert,
   TextInput,
-  ActivityIndicator,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Card } from '@/src/shared/components/Card';
-import { Button } from '@/src/shared/components/Button';
-import { StarRating } from '@/src/shared/components/StarRating';
+import { Sidebar } from '@/src/shared/components/Sidebar';
 import { Loading } from '@/src/shared/components/Loading';
-import { getProfessionalById } from '@/src/services/professionalService';
-import { getReviews, createReview } from '@/src/services/reviewService';
-import { createOrGetConversation } from '@/src/services/messageService';
-import { checkFavorite, addFavorite, removeFavorite } from '@/src/services/favoriteService';
-import { createRequest } from '@/src/services/requestService';
-import { useAuth } from '@/src/features/auth/hooks/useAuth';
-import type { Professional } from '@/src/types/professional';
-import type { Review } from '@/src/types/review';
+import { StarRating } from '@/src/shared/components/StarRating';
+import { getProfessionalById } from '@/src/features/professionals/services/professionalService';
+import {
+  getReviewsByProfessional,
+  createReview,
+} from '@/src/features/reviews/services/reviewService';
+import {
+  checkFavorite,
+  addFavorite,
+  removeFavorite,
+} from '@/src/features/favorites/services/favoriteService';
+import type { Professional } from '@/src/features/professionals/types/professionalTypes';
+import type { Review } from '@/src/features/reviews/types/reviewTypes';
+import { Colors } from '@/src/shared/constants/colors';
+
+function ReviewCard({ review }: { review: Review }) {
+  return (
+    <View
+      style={{ backgroundColor: Colors.slate100, borderColor: Colors.slate200 }}
+      className="rounded-2xl border p-4"
+    >
+      <View className="flex-row items-center gap-3">
+        <View
+          style={{ backgroundColor: Colors.primary100 }}
+          className="h-9 w-9 items-center justify-center rounded-full"
+        >
+          <Text style={{ color: Colors.primary700 }} className="text-sm font-bold">
+            {review.ReviewerName.charAt(0)}
+          </Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: Colors.text }} className="text-sm font-semibold">
+            {review.ReviewerName}
+          </Text>
+          <Text style={{ color: Colors.slate400 }} className="text-xs">
+            {new Date(review.CreatedAt).toLocaleDateString('pt-BR')}
+          </Text>
+        </View>
+        <StarRating value={review.Rating} size={16} />
+      </View>
+      {!!review.Comment && (
+        <Text style={{ color: Colors.textSecondary }} className="mt-3 text-sm">
+          {review.Comment}
+        </Text>
+      )}
+    </View>
+  );
+}
 
 export default function ProfessionalDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { user } = useAuth();
+  const id = params.id as string;
 
   const [professional, setProfessional] = useState<Professional | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [reviewRating, setReviewRating] = useState(0);
-  const [reviewComment, setReviewComment] = useState('');
+
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
-  const [startingChat, setStartingChat] = useState(false);
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [togglingFavorite, setTogglingFavorite] = useState(false);
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqDescription, setReqDescription] = useState('');
-  const [reqLocation, setReqLocation] = useState('');
-  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [togglingFav, setTogglingFav] = useState(false);
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      getProfessionalById(id),
-      getReviews(id),
-      user ? checkFavorite(id).catch(() => false) : Promise.resolve(false),
-    ])
-      .then(([pro, revs, fav]) => { setProfessional(pro); setReviews(revs); setIsFavorited(fav); })
-      .catch(() => Alert.alert('Erro', 'Não foi possível carregar o perfil.'))
-      .finally(() => setLoading(false));
-  }, [id, user]);
-
-  async function handleMessage() {
-    if (!user || !professional) return;
-    setStartingChat(true);
-    try {
-      const conv = await createOrGetConversation({ ClientId: user.UserId, ProfessionalId: professional.UserId });
-      router.push(`/messages/${conv.Id}` as any);
-    } catch { Alert.alert('Erro', 'Não foi possível iniciar conversa.'); }
-    finally { setStartingChat(false); }
-  }
+    async function load() {
+      try {
+        const [prof, revs] = await Promise.all([
+          getProfessionalById(id),
+          getReviewsByProfessional(id),
+        ]);
+        setProfessional(prof);
+        setReviews(revs);
+        try {
+          setIsFavorite(await checkFavorite(id));
+        } catch {
+          // not logged in
+        }
+      } catch {
+        router.replace('/professionals');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, [id, router]);
 
   async function handleToggleFavorite() {
-    if (!id) return;
-    setTogglingFavorite(true);
+    if (togglingFav) return;
+    setTogglingFav(true);
     try {
-      if (isFavorited) { await removeFavorite(id); setIsFavorited(false); }
-      else { await addFavorite(id); setIsFavorited(true); }
-    } catch { Alert.alert('Erro', 'Não foi possível atualizar favorito.'); }
-    finally { setTogglingFavorite(false); }
+      if (isFavorite) {
+        await removeFavorite(id);
+        setIsFavorite(false);
+      } else {
+        await addFavorite(id);
+        setIsFavorite(true);
+      }
+    } catch {
+      Alert.alert('Erro', 'Faça login para favoritar.');
+    } finally {
+      setTogglingFav(false);
+    }
   }
 
   async function handleSubmitReview() {
-    if (!id || reviewRating === 0) { Alert.alert('Atenção', 'Selecione uma nota antes de enviar.'); return; }
-    setSubmittingReview(true);
+    if (rating === 0) return;
     try {
-      const review = await createReview(id, { Rating: reviewRating, Comment: reviewComment || undefined });
-      setReviews((prev) => [review, ...prev]);
-      setReviewRating(0);
-      setReviewComment('');
-    } catch { Alert.alert('Erro', 'Não foi possível enviar a avaliação.'); }
-    finally { setSubmittingReview(false); }
-  }
-
-  async function handleSubmitRequest() {
-    if (!professional || !user) return;
-    if (!reqTitle.trim()) { Alert.alert('Atenção', 'O título é obrigatório.'); return; }
-    if (!reqDescription.trim()) { Alert.alert('Atenção', 'A descrição é obrigatória.'); return; }
-    setSubmittingRequest(true);
-    try {
-      await createRequest({
-        professionalId: professional.UserId,
-        title: reqTitle.trim(),
-        description: reqDescription.trim(),
-        location: reqLocation.trim() || undefined,
-        categoryId: professional.CategoryId || undefined,
+      setSubmittingReview(true);
+      const newReview = await createReview(id, {
+        rating,
+        comment: comment.trim() || undefined,
       });
-      setShowRequestModal(false);
-      setReqTitle(''); setReqDescription(''); setReqLocation('');
-      Alert.alert('Enviado!', 'Pedido de serviço enviado com sucesso.');
-    } catch { Alert.alert('Erro', 'Não foi possível enviar o pedido.'); }
-    finally { setSubmittingRequest(false); }
+      setReviews((prev) => [newReview, ...prev]);
+      if (professional) {
+        const newCount = professional.ReviewCount + 1;
+        const newRating =
+          (professional.Rating * professional.ReviewCount + rating) / newCount;
+        setProfessional({ ...professional, Rating: newRating, ReviewCount: newCount });
+      }
+      setRating(0);
+      setComment('');
+    } catch (error: unknown) {
+      const msg =
+        (error as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message ?? 'Erro ao enviar avaliação.';
+      Alert.alert('Erro', msg);
+    } finally {
+      setSubmittingReview(false);
+    }
   }
 
-  if (loading) return <Loading />;
-  if (!professional) return null;
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.appBackground }}>
+        <Sidebar />
+        <Loading message="Carregando perfil..." />
+      </View>
+    );
+  }
 
-  const isOwnProfile = user?.UserId === professional.UserId;
+  if (!professional) return null;
+  const p = professional;
 
   return (
-    <View className="flex-1 bg-slate-950">
-      <ScrollView contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-        {/* Hero header */}
-        <View className="bg-primary/10 border-b border-primary/20 pb-6" style={{ paddingTop: insets.top + 8 }}>
-          <View className="flex-row justify-between items-center px-2">
-            <TouchableOpacity onPress={() => router.back()} className="p-2.5">
-              <Ionicons name="arrow-back" size={24} color="#f8fafc" />
-            </TouchableOpacity>
-            {!isOwnProfile && user && (
-              <TouchableOpacity onPress={handleToggleFavorite} className="p-2.5" disabled={togglingFavorite}>
-                {togglingFavorite
-                  ? <ActivityIndicator size="small" color="#f8fafc" />
-                  : <Ionicons name={isFavorited ? 'heart' : 'heart-outline'} size={24} color={isFavorited ? '#ef4444' : '#f8fafc'} />
-                }
-              </TouchableOpacity>
-            )}
+    <View style={{ flex: 1, backgroundColor: Colors.appBackground }}>
+      <Sidebar />
+      <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 24 }}>
+        {/* Header card */}
+        <View
+          style={{ backgroundColor: Colors.surface, borderColor: Colors.slate200 }}
+          className="rounded-3xl border p-6"
+        >
+          <View className="flex-row items-start gap-4">
+            <View
+              style={{ backgroundColor: Colors.primary }}
+              className="h-20 w-20 items-center justify-center rounded-3xl"
+            >
+              <Text className="text-3xl font-bold text-white">
+                {p.UserName.charAt(0)}
+              </Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <View className="flex-row flex-wrap items-center gap-2">
+                <Text style={{ color: Colors.text }} className="text-2xl font-bold">
+                  {p.UserName}
+                </Text>
+                <View
+                  style={{
+                    backgroundColor: p.Available ? '#dcfce7' : Colors.slate100,
+                  }}
+                  className="rounded-full px-2.5 py-0.5"
+                >
+                  <Text
+                    style={{ color: p.Available ? Colors.successText : Colors.slate500 }}
+                    className="text-xs font-medium"
+                  >
+                    {p.Available ? 'Disponível' : 'Indisponível'}
+                  </Text>
+                </View>
+              </View>
+              {!!p.Title && (
+                <Text style={{ color: Colors.primary700 }} className="mt-1 text-base font-medium">
+                  {p.Title}
+                </Text>
+              )}
+              <Text style={{ color: Colors.primary }} className="mt-2 text-sm font-medium">
+                {p.Category}
+              </Text>
+              {!!p.Location && (
+                <View className="mt-1 flex-row items-center gap-1">
+                  <Ionicons name="location-outline" size={14} color={Colors.slate400} />
+                  <Text style={{ color: Colors.slate500 }} className="text-sm">
+                    {p.Location}
+                  </Text>
+                </View>
+              )}
+              <View className="mt-1 flex-row items-center gap-1">
+                <Ionicons name="star" size={14} color={Colors.star} />
+                <Text style={{ color: Colors.slate500 }} className="text-sm">
+                  {p.Rating.toFixed(1)} ({p.ReviewCount}{' '}
+                  {p.ReviewCount === 1 ? 'avaliação' : 'avaliações'})
+                </Text>
+              </View>
+              {!!p.Price && (
+                <View className="mt-2 flex-row items-center gap-1">
+                  <Ionicons name="cash-outline" size={14} color={Colors.green} />
+                  <Text style={{ color: Colors.textSecondary }} className="text-sm font-semibold">
+                    R$ {p.Price}/hora
+                    {p.PriceRange ? `  (${p.PriceRange})` : ''}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            <Pressable
+              onPress={handleToggleFavorite}
+              disabled={togglingFav}
+              style={{
+                borderColor: isFavorite ? '#fecaca' : Colors.slate200,
+                backgroundColor: isFavorite ? '#fef2f2' : Colors.slate100,
+              }}
+              className="rounded-2xl border p-3"
+            >
+              <Ionicons
+                name={isFavorite ? 'heart' : 'heart-outline'}
+                size={24}
+                color={isFavorite ? Colors.red : Colors.slate400}
+              />
+            </Pressable>
           </View>
 
-          <View className="items-center gap-2 px-5">
-            <View className="w-24 h-24 rounded-full bg-primary/20 border-2 border-primary/40 items-center justify-center overflow-hidden">
-              {professional.AvatarUrl
-                ? <Image source={{ uri: professional.AvatarUrl }} className="w-full h-full" />
-                : <Text className="text-4xl font-bold text-primary">{professional.UserName?.charAt(0).toUpperCase()}</Text>
-              }
-            </View>
-            <Text className="text-2xl font-bold text-white">{professional.UserName}</Text>
-            {professional.Title && <Text className="text-slate-400 text-sm">{professional.Title}</Text>}
-            <View className="flex-row items-center gap-2">
-              <StarRating rating={professional.Rating} size={16} />
-              <Text className="text-slate-300 text-sm font-medium">{professional.Rating.toFixed(1)} ({professional.ReviewCount})</Text>
-            </View>
-          </View>
-        </View>
+          {!!p.Bio && (
+            <Text
+              style={{ color: Colors.textSecondary, borderTopColor: Colors.slate100 }}
+              className="mt-6 border-t pt-6 text-sm leading-7"
+            >
+              {p.Bio}
+            </Text>
+          )}
 
-        <View className="px-5 pt-4 gap-4">
-          {/* Tags */}
-          {professional.Tags.length > 0 && (
-            <View className="flex-row flex-wrap gap-2">
-              {professional.Tags.map((tag) => (
-                <View key={tag.Id} className="px-3 py-1 rounded-full bg-primary/15 border border-primary/30">
-                  <Text className="text-xs text-primary font-medium">{tag.Name}</Text>
+          {p.Tags.length > 0 && (
+            <View className="mt-5 flex-row flex-wrap gap-2">
+              {p.Tags.map((tag) => (
+                <View
+                  key={tag.Id}
+                  style={{ backgroundColor: Colors.primary50, borderColor: Colors.primary100 }}
+                  className="flex-row items-center gap-1 rounded-full border px-3 py-1"
+                >
+                  <Ionicons name="pricetag" size={12} color={Colors.primary700} />
+                  <Text style={{ color: Colors.primary700 }} className="text-xs font-medium">
+                    {tag.Name}
+                  </Text>
                 </View>
               ))}
             </View>
           )}
 
-          {/* Info card */}
-          <Card className="gap-2.5">
-            {professional.Bio && (
-              <View className="flex-row items-start gap-2.5">
-                <Ionicons name="person-outline" size={16} color="#64748b" />
-                <Text className="text-slate-300 text-sm flex-1 leading-5">{professional.Bio}</Text>
-              </View>
-            )}
-            {professional.Location && (
-              <View className="flex-row items-center gap-2.5">
-                <Ionicons name="location-outline" size={16} color="#64748b" />
-                <Text className="text-slate-300 text-sm">{professional.Location}</Text>
-              </View>
-            )}
-            {professional.PriceRange && (
-              <View className="flex-row items-center gap-2.5">
-                <Ionicons name="cash-outline" size={16} color="#64748b" />
-                <Text className="text-slate-300 text-sm">{professional.PriceRange}</Text>
-              </View>
-            )}
-            <View className="flex-row items-center gap-2.5">
-              <Ionicons name="briefcase-outline" size={16} color="#64748b" />
-              <Text className="text-slate-300 text-sm">{professional.Category}</Text>
-            </View>
-            <View className="flex-row items-center gap-2.5">
-              <Ionicons
-                name={professional.Available ? 'checkmark-circle' : 'close-circle'}
-                size={16}
-                color={professional.Available ? '#22c55e' : '#ef4444'}
-              />
-              <Text className={`text-sm font-medium ${professional.Available ? 'text-green-400' : 'text-red-400'}`}>
-                {professional.Available ? 'Disponível' : 'Indisponível'}
-              </Text>
-            </View>
-          </Card>
+          <Pressable
+            onPress={() => router.push('/chat')}
+            style={{ backgroundColor: Colors.slate950 }}
+            className="mt-6 rounded-xl py-3"
+          >
+            <Text className="text-center text-sm font-semibold text-white">
+              Chamar / Contratar
+            </Text>
+          </Pressable>
+        </View>
 
-          {/* Description */}
-          {professional.Description && (
-            <View className="gap-2">
-              <Text className="text-white text-base font-bold">Sobre</Text>
-              <Text className="text-slate-400 text-sm leading-[22px]">{professional.Description}</Text>
+        {/* Review form */}
+        <View
+          style={{ backgroundColor: Colors.surface, borderColor: Colors.slate200 }}
+          className="rounded-3xl border p-6"
+        >
+          <Text style={{ color: Colors.text }} className="mb-4 text-lg font-bold">
+            Deixar avaliação
+          </Text>
+          <Text style={{ color: Colors.textSecondary }} className="mb-2 text-sm font-medium">
+            Sua nota
+          </Text>
+          <StarRating value={rating} onChange={setRating} />
+          <Text style={{ color: Colors.textSecondary }} className="mb-2 mt-4 text-sm font-medium">
+            Comentário (opcional)
+          </Text>
+          <TextInput
+            value={comment}
+            onChangeText={setComment}
+            placeholder="Descreva sua experiência com este profissional."
+            placeholderTextColor={Colors.slate400}
+            multiline
+            numberOfLines={3}
+            style={{
+              backgroundColor: Colors.slate100,
+              borderColor: Colors.slate200,
+              color: Colors.text,
+              minHeight: 80,
+              textAlignVertical: 'top',
+            }}
+            className="rounded-xl border px-4 py-3 text-sm"
+          />
+          <Pressable
+            onPress={handleSubmitReview}
+            disabled={submittingReview || rating === 0}
+            style={{
+              backgroundColor: Colors.primary,
+              opacity: submittingReview || rating === 0 ? 0.6 : 1,
+              alignSelf: 'flex-start',
+            }}
+            className="mt-4 rounded-xl px-6 py-2.5"
+          >
+            <Text className="text-sm font-semibold text-white">
+              {submittingReview ? 'Enviando...' : 'Enviar avaliação'}
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Reviews list */}
+        <View
+          style={{ backgroundColor: Colors.surface, borderColor: Colors.slate200 }}
+          className="rounded-3xl border p-6"
+        >
+          <Text style={{ color: Colors.text }} className="mb-4 text-lg font-bold">
+            Avaliações ({reviews.length})
+          </Text>
+          {reviews.length === 0 ? (
+            <Text style={{ color: Colors.slate400 }} className="py-6 text-center text-sm">
+              Nenhuma avaliação ainda. Seja o primeiro a avaliar!
+            </Text>
+          ) : (
+            <View className="gap-3">
+              {reviews.map((review) => (
+                <ReviewCard key={review.Id} review={review} />
+              ))}
             </View>
-          )}
-
-          {/* Action buttons */}
-          {!isOwnProfile && (
-            <View className="flex-row gap-2.5">
-              <Button label={startingChat ? 'Abrindo...' : 'Mensagem'} onPress={handleMessage} loading={startingChat} variant="outline" className="flex-1" />
-              <Button label="Solicitar serviço" onPress={() => setShowRequestModal(true)} className="flex-1" />
-            </View>
-          )}
-
-          {/* Reviews */}
-          <View className="gap-3">
-            <Text className="text-white text-base font-bold">Avaliações ({reviews.length})</Text>
-            {reviews.length === 0 && <Text className="text-slate-500 text-sm italic">Nenhuma avaliação ainda.</Text>}
-            {reviews.map((review) => (
-              <Card key={review.Id} className="gap-1.5">
-                <View className="flex-row justify-between items-center">
-                  <Text className="text-slate-200 text-sm font-semibold">{review.ReviewerName}</Text>
-                  <StarRating rating={review.Rating} size={14} />
-                </View>
-                {review.Comment && <Text className="text-slate-400 text-[13px] leading-5">{review.Comment}</Text>}
-                <Text className="text-slate-600 text-[11px]">{new Date(review.CreatedAt).toLocaleDateString('pt-BR')}</Text>
-              </Card>
-            ))}
-          </View>
-
-          {/* Write review */}
-          {!isOwnProfile && (
-            <Card className="gap-3">
-              <Text className="text-white text-base font-bold">Deixar avaliação</Text>
-              <View className="items-center py-1">
-                <StarRating rating={reviewRating} size={28} readonly={false} onRate={setReviewRating} />
-              </View>
-              <TextInput
-                className="bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm text-white h-20"
-                placeholder="Conte sua experiência (opcional)"
-                placeholderTextColor="#64748b"
-                value={reviewComment}
-                onChangeText={setReviewComment}
-                multiline
-                numberOfLines={3}
-                textAlignVertical="top"
-              />
-              <Button label="Enviar avaliação" onPress={handleSubmitReview} loading={submittingReview} variant="outline" />
-            </Card>
           )}
         </View>
       </ScrollView>
-
-      {/* Service Request Modal */}
-      <Modal visible={showRequestModal} animationType="slide" transparent onRequestClose={() => setShowRequestModal(false)}>
-        <KeyboardAvoidingView className="flex-1 justify-end bg-black/70" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <View className="bg-slate-900 rounded-t-3xl px-6 pt-3 border-t border-slate-800" style={{ paddingBottom: insets.bottom + 24 }}>
-            <View className="w-10 h-1 rounded bg-slate-700 self-center mb-4" />
-            <View className="flex-row justify-between items-center mb-1">
-              <Text className="text-white text-lg font-bold">Solicitar serviço</Text>
-              <TouchableOpacity onPress={() => setShowRequestModal(false)} className="p-1">
-                <Ionicons name="close" size={24} color="#f8fafc" />
-              </TouchableOpacity>
-            </View>
-            <Text className="text-slate-400 text-sm mb-4">Para: {professional?.UserName}</Text>
-
-            <Text className="text-slate-300 text-sm font-medium mb-1.5">Título *</Text>
-            <TextInput
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 text-sm text-white mb-3"
-              placeholder="Ex: Desenvolvimento de site"
-              placeholderTextColor="#64748b"
-              value={reqTitle}
-              onChangeText={setReqTitle}
-              maxLength={100}
-            />
-            <Text className="text-slate-300 text-sm font-medium mb-1.5">Descrição *</Text>
-            <TextInput
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 text-sm text-white h-24 mb-3"
-              placeholder="Descreva o que você precisa..."
-              placeholderTextColor="#64748b"
-              value={reqDescription}
-              onChangeText={setReqDescription}
-              multiline
-              numberOfLines={4}
-              maxLength={500}
-              textAlignVertical="top"
-            />
-            <Text className="text-slate-300 text-sm font-medium mb-1.5">Localização (opcional)</Text>
-            <TextInput
-              className="bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-3 text-sm text-white mb-4"
-              placeholder="Ex: São Paulo, SP"
-              placeholderTextColor="#64748b"
-              value={reqLocation}
-              onChangeText={setReqLocation}
-            />
-            <Button label="Enviar pedido" onPress={handleSubmitRequest} loading={submittingRequest} />
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
     </View>
   );
 }

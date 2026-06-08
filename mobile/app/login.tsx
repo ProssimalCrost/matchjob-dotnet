@@ -1,108 +1,224 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
+  ImageBackground,
   View,
   Text,
-  ScrollView,
-  TouchableOpacity,
+  TextInput,
+  Pressable,
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Input } from '@/src/shared/components/Input';
-import { Button } from '@/src/shared/components/Button';
-import { signInWithEmail } from '@/src/services/authService';
+import { useRouter, Link } from 'expo-router';
+import * as Linking from 'expo-linking';
+import { supabase } from '@/src/core/supabase/client';
+import { setToken } from '@/src/shared/utils/token';
+import { syncUser } from '@/src/features/auth/services/authService';
+import { getMyProfessionalProfile } from '@/src/features/professionals/services/professionalService';
+import { Colors } from '@/src/shared/constants/colors';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [googleLoading, setGoogleLoading] = useState(false);
 
-  function validate() {
-    const e: typeof errors = {};
-    if (!email.trim()) e.email = 'E-mail é obrigatório';
-    else if (!/\S+@\S+\.\S+/.test(email)) e.email = 'E-mail inválido';
-    if (!password) e.password = 'Senha é obrigatória';
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  }
-
-  async function handleLogin() {
-    if (!validate()) return;
-    setLoading(true);
+  async function handleSubmit() {
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Atenção', 'Preencha e-mail e senha.');
+      return;
+    }
     try {
-      await signInWithEmail(email.trim(), password);
-    } catch (err: any) {
-      Alert.alert('Erro ao entrar', err.message ?? 'Tente novamente.');
+      setLoading(true);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (error) {
+        Alert.alert('Erro', 'Email ou senha incorretos.');
+        return;
+      }
+      if (!data.session) {
+        Alert.alert('Atenção', 'Confirme seu e-mail antes de fazer login.');
+        return;
+      }
+
+      await setToken(data.session.access_token);
+
+      // Garante que o usuário existe na tabela local antes de qualquer operação
+      await syncUser();
+
+      try {
+        await getMyProfessionalProfile();
+        router.replace('/professionals');
+      } catch {
+        router.replace('/profile/setup');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Erro', 'Erro ao fazer login. Verifique seus dados.');
     } finally {
       setLoading(false);
     }
   }
 
+  async function handleGoogleLogin() {
+    try {
+      setGoogleLoading(true);
+      const redirectTo = Linking.createURL('/auth/callback');
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo },
+      });
+      if (error) {
+        console.error('Erro ao entrar com Google:', error.message);
+        Alert.alert('Erro', 'Erro ao entrar com Google.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Erro', 'Erro inesperado ao tentar entrar com Google.');
+    } finally {
+      setGoogleLoading(false);
+    }
+  }
+
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-slate-950"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    <ImageBackground
+      source={require('@/assets/logos/bg.png')}
+      resizeMode="cover"
+      style={{ flex: 1, backgroundColor: Colors.slate950 }}
     >
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
-        className="px-6"
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
       >
-        {/* Brand */}
-        <View className="items-center mb-10">
-          <View className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 items-center justify-center mb-4">
-            <Text className="text-3xl font-bold text-primary">M</Text>
-          </View>
-          <Text className="text-4xl font-bold text-white tracking-tight">MatchJob</Text>
-          <Text className="text-slate-400 text-sm mt-1">Conectando profissionais a clientes</Text>
-        </View>
-
-        {/* Form */}
-        <View className="bg-slate-900 rounded-3xl p-6 border border-slate-800">
-          <Text className="text-2xl font-bold text-white mb-5">Entrar</Text>
-
-          <Input
-            label="E-mail"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoComplete="email"
-            error={errors.email}
-            placeholder="seu@email.com"
-          />
-
-          <Input
-            label="Senha"
-            value={password}
-            onChangeText={setPassword}
-            isPassword
-            error={errors.password}
-            placeholder="••••••••"
-          />
-
-          <Button
-            label="Entrar"
-            onPress={handleLogin}
-            loading={loading}
-            className="mt-2"
-          />
-
-          <TouchableOpacity
-            onPress={() => router.push('/register')}
-            className="items-center mt-4"
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: Colors.slate900,
+              borderColor: Colors.slate800,
+            }}
+            className="w-full self-center rounded-2xl border p-8"
           >
-            <Text className="text-slate-400 text-sm">
-              Não tem conta?{' '}
-              <Text className="text-primary font-semibold">Cadastre-se</Text>
+            <Link href="/" asChild>
+              <Pressable>
+                <Text
+                  style={{ color: Colors.primaryLight }}
+                  className="mb-6 text-sm font-semibold"
+                >
+                  MatchJob
+                </Text>
+              </Pressable>
+            </Link>
+
+            <Text className="mb-2 text-3xl font-bold text-white">Entrar</Text>
+            <Text style={{ color: Colors.slate400 }} className="mb-8">
+              Acesse sua conta no MatchJob.
             </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+            <Pressable
+              onPress={handleGoogleLogin}
+              disabled={googleLoading || loading}
+              style={{ backgroundColor: Colors.white, opacity: googleLoading ? 0.6 : 1 }}
+              className="rounded-lg py-3"
+            >
+              <Text
+                style={{ color: Colors.slate950 }}
+                className="text-center font-semibold"
+              >
+                {googleLoading ? 'Redirecionando...' : 'Entrar com Google'}
+              </Text>
+            </Pressable>
+
+            <View className="my-6 flex-row items-center gap-3">
+              <View style={{ height: 1, flex: 1, backgroundColor: Colors.slate700 }} />
+              <Text style={{ color: Colors.slate500 }} className="text-xs">
+                ou entre com e-mail
+              </Text>
+              <View style={{ height: 1, flex: 1, backgroundColor: Colors.slate700 }} />
+            </View>
+
+            <View className="gap-4">
+              <View>
+                <Text style={{ color: Colors.slate300 }} className="mb-1 text-sm">
+                  E-mail
+                </Text>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="seuemail@email.com"
+                  placeholderTextColor={Colors.slate500}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  style={{
+                    backgroundColor: Colors.slate800,
+                    borderColor: Colors.slate700,
+                    color: Colors.white,
+                  }}
+                  className="rounded-lg border px-4 py-3"
+                />
+              </View>
+
+              <View>
+                <Text style={{ color: Colors.slate300 }} className="mb-1 text-sm">
+                  Senha
+                </Text>
+                <TextInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="********"
+                  placeholderTextColor={Colors.slate500}
+                  secureTextEntry
+                  style={{
+                    backgroundColor: Colors.slate800,
+                    borderColor: Colors.slate700,
+                    color: Colors.white,
+                  }}
+                  className="rounded-lg border px-4 py-3"
+                />
+              </View>
+            </View>
+
+            <Pressable
+              onPress={handleSubmit}
+              disabled={loading || googleLoading}
+              style={{ backgroundColor: Colors.primary, opacity: loading ? 0.6 : 1 }}
+              className="mt-6 rounded-lg py-3"
+            >
+              <Text className="text-center font-semibold text-white">
+                {loading ? 'Entrando...' : 'Entrar'}
+              </Text>
+            </Pressable>
+
+            <View className="mt-6 flex-row justify-center">
+              <Text style={{ color: Colors.slate400 }} className="text-sm">
+                Não tem uma conta?{' '}
+              </Text>
+              <Link href="/register" asChild>
+                <Pressable>
+                  <Text
+                    style={{ color: Colors.primaryLight }}
+                    className="text-sm font-semibold"
+                  >
+                    Criar conta
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }

@@ -106,11 +106,24 @@ Limpar cache (quando tiver problema de módulo):
 
   npx expo start --clear
 
+Atualizar SDK (se o Expo Go reclamar de versão incompatível):
+
+  npx expo install --check
+  npx expo upgrade
+
 Rebuild completo (quando mudar dependências nativas):
 
   npx expo prebuild
   npx expo run:android
   npx expo run:ios
+
+Limpeza e Atualização Profunda (se o erro de versão persistir):
+
+  cd mobile
+  rm -rf node_modules
+  rm -rf .expo
+  npm install
+  npx expo upgrade
 
   ┌─────────────────────────────────────────────────────┐
   │  URL DA API NO CELULAR/EMULADOR                     │
@@ -218,6 +231,11 @@ Recriar banco do zero (cuidado — apaga tudo):
 
 Erro: dotnet not found
   → Instale o .NET SDK 8 e reinicie o terminal
+
+Erro: Project is incompatible with this version of Expo Go
+  → O SDK do projeto está desatualizado para o app do celular.
+  → No terminal (pasta mobile): npx expo upgrade
+  → Ou: Atualize o app Expo Go na sua App Store / Google Play.
 
 Erro: Failed to connect to database
   → Verifique se o PostgreSQL está rodando
