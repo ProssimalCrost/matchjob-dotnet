@@ -77,9 +77,13 @@ services:
       target: runner
       args:
         NEXT_PUBLIC_API_URL: "http://localhost:8080"
+        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder-key"
     container_name: matchjob-web
     environment:
       NEXT_PUBLIC_API_URL: "http://localhost:8080"
+      NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder-key"
       NODE_ENV: production
     ports:
       - "3000:3000"
@@ -94,3 +98,27 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  mobile:
+    build:
+      context: .
+      dockerfile: ./docker/mobile/Dockerfile
+      target: dev
+    container_name: matchjob-mobile
+    environment:
+      EXPO_PUBLIC_API_URL: "http://localhost:8080"
+      EXPO_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: "0.0.0.0"
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
+    depends_on:
+      - backend
+    networks:
+      - matchjob-net
+    restart: unless-stopped
