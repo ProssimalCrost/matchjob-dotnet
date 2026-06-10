@@ -29,6 +29,8 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: "http://localhost:8080"
+      NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "placeholder-key"
     volumes:
       - ./front:/app
       - /app/node_modules
@@ -36,3 +38,26 @@ services:
     command: npm run dev
     ports:
       - "3000:3000"
+
+  mobile:
+    build:
+      context: .
+      dockerfile: ./docker/mobile/Dockerfile
+      target: dev
+    environment:
+      NODE_ENV: development
+      EXPO_PUBLIC_API_URL: "http://localhost:8080"
+      EXPO_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
+      EXPO_DEVTOOLS_LISTEN_ADDRESS: "0.0.0.0"
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./mobile:/app
+      - /app/node_modules
+    command: npx expo start --lan
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+      - "19001:19001"
+      - "19002:19002"
