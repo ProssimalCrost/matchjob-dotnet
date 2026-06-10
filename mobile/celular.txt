@@ -1,0 +1,22 @@
+O que fazer agora
+1. Confirmar o IP da máquina — abra o PowerShell e rode:
+
+
+ipconfig
+Procure o IP na rede local (geralmente começa com 192.168.x.x ou 10.0.x.x). Se não for 10.0.0.128, atualize o .env.
+
+2. Liberar porta 5000 no Firewall do Windows — rode como Administrador:
+
+
+netsh advfirewall firewall add rule name="MatchJob API" dir=in action=allow protocol=TCP localport=5000
+3. Reiniciar o backend com dotnet run (o perfil já está configurado para 0.0.0.0:5000).
+
+4. Reiniciar o Expo com cache limpo:
+
+
+npx expo start --clear
+5. Verificar no browser do celular se http://10.0.0.128:5000/swagger abre. Se abrir, a conexão está OK.
+
+Resumo do root cause
+O .env estava com a URL de um localtunnel inativo (quiet-months-sniff.loca.lt). O Axios tentava bater nesse endereço inexistente e falhava imediatamente com Network Error. A URL foi corrigida para http://10.0.0.128:5000 e o CORS do backend foi liberado para qualquer origem em Development.
+

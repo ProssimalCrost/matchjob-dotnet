@@ -87,7 +87,7 @@ Configurar variáveis de ambiente (primeira vez):
 
 Iniciar o Expo:
 
-  npx expo start
+  npx expo start || npx expo start --tunnel -c
 
 Opções no terminal após o start:
 
