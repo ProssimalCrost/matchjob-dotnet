@@ -1,0 +1,33 @@
+variable "REGISTRY" {
+  default = "matchjob"
+}
+
+variable "TAG" {
+  default = "latest"
+}
+
+variable "NEXT_PUBLIC_API_URL" {
+  default = "http://localhost:8080"
+}
+
+group "default" {
+  targets = ["backend", "frontend"]
+}
+
+target "backend" {
+  context    = "."
+  dockerfile = "./docker/backend/Dockerfile"
+  target     = "runtime"
+  tags       = ["${REGISTRY}/backend:${TAG}"]
+}
+
+target "frontend" {
+  context    = "."
+  dockerfile = "./docker/frontend/Dockerfile"
+  target     = "runner"
+  tags       = ["${REGISTRY}/frontend:${TAG}"]
+
+  args = {
+    NEXT_PUBLIC_API_URL = "${NEXT_PUBLIC_API_URL}"
+  }
+}
