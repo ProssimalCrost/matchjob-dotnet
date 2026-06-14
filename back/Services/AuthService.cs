@@ -38,12 +38,10 @@ public class AuthService
             await using var transaction = await _db.Database.BeginTransactionAsync();
             try
             {
-                await MigrateUserIdAsync(user.Id, guid);
+                await MigrateUserIdAsync(user, guid, email, name);
                 _db.Entry(user).State = EntityState.Detached;
 
                 user = (await _db.Users.FirstOrDefaultAsync(u => u.Id == guid))!;
-                user.Name = name;
-                await _db.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
             catch
@@ -78,18 +76,26 @@ public class AuthService
     // ─── Privado ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Migra o ID de um usuário existente (fluxo antigo) para o UUID do Supabase.
+    /// Migra um usuário existente (fluxo antigo) para o UUID do Supabase.
     /// Deve ser chamado dentro de uma transação aberta.
-    /// Adia validação de FKs, atualiza o PK e todas as tabelas dependentes.
+    /// Cria a nova linha de usuário, move as dependências e remove a linha antiga.
     /// </summary>
-    private async Task MigrateUserIdAsync(Guid oldId, Guid newId)
+    private async Task MigrateUserIdAsync(User oldUser, Guid newId, string email, string name)
     {
-        // Adia a validação de todas as FKs para o fim da transação
-        await _db.Database.ExecuteSqlRawAsync("SET CONSTRAINTS ALL DEFERRED");
+        var oldId = oldUser.Id;
+        var tempEmail = $"{oldId}.migrating.{oldUser.Email}";
 
-        // PK primeiro — as FKs apontam para cá
+        // Libera o email único para a nova linha sem alterar a PK referenciada.
         await _db.Database.ExecuteSqlRawAsync(
-            "UPDATE users SET \"Id\" = {0} WHERE \"Id\" = {1}", newId, oldId);
+            "UPDATE users SET \"Email\" = {0} WHERE \"Id\" = {1}", tempEmail, oldId);
+
+        await _db.Database.ExecuteSqlRawAsync(
+            "INSERT INTO users (\"Id\", \"Name\", \"Email\", \"Password\", \"Role\") VALUES ({0}, {1}, {2}, {3}, {4})",
+            newId,
+            name,
+            email,
+            oldUser.Password,
+            oldUser.Role.ToString());
 
         // Tabelas dependentes
         await _db.Database.ExecuteSqlRawAsync(
@@ -110,6 +116,9 @@ public class AuthService
             "UPDATE service_requests SET \"ClientId\" = {0} WHERE \"ClientId\" = {1}", newId, oldId);
         await _db.Database.ExecuteSqlRawAsync(
             "UPDATE service_requests SET \"ProfessionalId\" = {0} WHERE \"ProfessionalId\" = {1}", newId, oldId);
+
+        await _db.Database.ExecuteSqlRawAsync(
+            "DELETE FROM users WHERE \"Id\" = {0}", oldId);
     }
 
     private static AuthResponse BuildInfo(User user) =>

@@ -15,7 +15,7 @@ export default function HomeScreen() {
         <View className="w-full max-w-xl items-center">
           <Image
             source={require('@/assets/logos/logositeb.png')}
-            style={{ width: 260, height: 120, marginBottom: 40 }}
+            style={{ width: 360, height: 120, marginBottom: 40 }}
             resizeMode="contain"
           />
 

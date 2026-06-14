@@ -12,7 +12,7 @@ const extra = Constants.expoConfig?.extra ?? {};
 export const API_URL =
   (extra.apiUrl as string | undefined) ??
   process.env.EXPO_PUBLIC_API_URL ??
-  'http://localhost:5000';
+  'http://192.168.2.114:5000';
 
 export const SUPABASE_URL =
   (extra.supabaseUrl as string | undefined) ??

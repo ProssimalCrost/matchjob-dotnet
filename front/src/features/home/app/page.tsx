@@ -15,7 +15,7 @@ export default function HomePage() {
           <img
             src="/logos/logositeb.png"
             alt="logo"
-            className="w-[700px] mx-auto mb-20"
+            className="w-[900px] mx-auto mb-20"
           />
         </span>
 
